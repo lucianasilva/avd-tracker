@@ -1,1 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AVD Implementation Roadmap Tracker</title>
+<style>
+  :root {
+    --bg:#ffffff;--bg2:#f5f5f3;--bg3:#eeede8;
+    --text:#1a1a18;--text2:#5f5e5a;--text3:#888780;
+    --border:rgba(0,0,0,0.12);--border2:rgba(0,0,0,0.22);
+    --success-bg:#eaf3de;--success-text:#27500a;--success-border:#97c459;
+    --warn-bg:#faeeda;--warn-text:#633806;--warn-border:#ef9f27;
+    --danger-bg:#fcebeb;--danger-text:#791f1f;--danger-border:#f09595;
+    --info-bg:#e6f1fb;--info-text:#0c447c;--info-border:#85b7eb;
+    --radius:8px;--radius-lg:12px;
+  }
+  @media(prefers-color-scheme:dark){:root{
+    --bg:#1c1c1a;--bg2:#252523;--bg3:#2e2e2b;
+    --text:#e8e6de;--text2:#9c9a92;--text3:#66635c;
+    --border:rgba(255,255,255,0.1);--border2:rgba(255,255,255,0.2);
+    --success-bg:#173404;--success-text:#c0dd97;--success-border:#3b6d11;
+    --warn-bg:#412402;--warn-text:#fac775;--warn-border:#854f0b;
+    --danger-bg:#501313;--danger-text:#f7c1c1;--danger-border:#a32d2d;
+    --info-bg:#042c53;--info-text:#b5d4f4;--info-border:#185fa5;
+  }}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;background:var(--bg3);color:var(--text);min-height:100vh}
 
+  /* ── Auth screen ── */
+  #auth-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:16px;padding:24px}
+  .auth-card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:40px 48px;text-align:center;max-width:400px;width:100%}
+  .auth-logo{font-size:28px;margin-bottom:8px}
+  .auth-title{font-size:18px;font-weight:500;margin-bottom:4px}
+  .auth-sub{font-size:13px;color:var(--text2);margin-bottom:28px;line-height:1.5}
+  .btn-github{display:inline-flex;align-items:center;gap:10px;background:var(--text);color:var(--bg);border:none;border-radius:var(--radius);padding:10px 20px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;text-decoration:none}
+  .btn-github:hover{opacity:.85}
+  .auth-note{font-size:11px;color:var(--text3);margin-top:16px;line-height:1.5}
+  #auth-error{color:var(--danger-text);font-size:13px;background:var(--danger-bg);border:0.5px solid var(--danger-border);border-radius:var(--radius);padding:8px 14px;display:none}
+
+  /* ── App shell ── */
+  #app-screen{display:none}
+  .shell{max-width:860px;margin:0 auto;padding:24px 16px}
+  .app-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding-bottom:16px;border-bottom:0.5px solid var(--border);flex-wrap:wrap;gap:10px}
+  .app-title{font-size:18px;font-weight:500}
+  .app-sub{font-size:12px;color:var(--text3);margin-top:2px}
+  .header-right{display:flex;align-items:center;gap:10px}
+  .user-badge{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);background:var(--bg2);border:0.5px solid var(--border);border-radius:20px;padding:4px 12px}
+  .user-avatar{width:18px;height:18px;border-radius:50%}
+  .team-badge{font-size:12px;color:var(--text2);background:var(--bg2);border:0.5px solid var(--border);border-radius:20px;padding:4px 12px}
+  .btn-signout{font-size:12px;color:var(--text3);background:transparent;border:none;cursor:pointer;padding:4px 8px;font-family:inherit}
+  .btn-signout:hover{color:var(--text)}
+
+  /* ── Navigation ── */
+  .nav{display:flex;gap:2px;margin-bottom:20px;border-bottom:0.5px solid var(--border)}
+  .nav-btn{font-size:13px;padding:7px 14px;border:none;background:transparent;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:inherit}
+  .nav-btn.active{color:var(--text);font-weight:500;border-bottom-color:var(--text)}
+  .nav-btn:hover{color:var(--text)}
+  .view{display:none}.view.active{display:block}
+
+  /* ── Base elements ── */
+  input,textarea,select{font-family:inherit;font-size:13px;color:var(--text);background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius);outline:none;padding:6px 10px}
+  input:focus,textarea:focus,select:focus{border-color:var(--border2)}
+  textarea{resize:vertical;line-height:1.5}
+  button{font-family:inherit;cursor:pointer}
+  .btn-primary{background:var(--text);color:var(--bg);border:none;border-radius:var(--radius);padding:8px 18px;font-size:13px;font-weight:500}
+  .btn-primary:hover{opacity:.85}
+  .btn-ghost{background:transparent;border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 14px;font-size:13px;color:var(--text2)}
+  .btn-ghost:hover{background:var(--bg2)}
+  .btn-danger{background:transparent;border:0.5px solid var(--danger-border);border-radius:var(--radius);padding:7px 14px;font-size:13px;color:var(--danger-text)}
+  .save-msg{font-size:12px;color:var(--success-text);background:var(--success-bg);padding:4px 10px;border-radius:4px}
+  .card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:16px 20px;margin-bottom:12px}
+  .save-bar{display:flex;align-items:center;gap:10px;margin-top:16px;padding-top:16px;border-top:0.5px solid var(--border);flex-wrap:wrap}
+  .info-box{background:var(--info-bg);border:0.5px solid var(--info-border);border-radius:var(--radius);padding:12px 16px;font-size:12px;color:var(--info-text);line-height:1.6}
+
+  /* ── Setup ── */
+  .field-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .field-row{display:grid;grid-template-columns:130px 1fr;gap:8px;align-items:center;margin-bottom:8px}
+  .field-label{font-size:12px;color:var(--text2);font-weight:500}
+  .field-input{width:100%}
+
+  /* ── Roadmap ── */
+  .action-card{border:0.5px solid var(--border);border-radius:var(--radius-lg);margin-bottom:10px;overflow:hidden;background:var(--bg)}
+  .action-head{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg2);cursor:pointer;user-select:none}
+  .action-head:hover{background:var(--bg3)}
+  .ac-badge{font-size:11px;font-weight:500;padding:2px 8px;border-radius:4px;flex-shrink:0;white-space:nowrap}
+  .ac-title{font-size:13px;font-weight:500;flex:1}
+  .ac-meta{font-size:11px;color:var(--text3)}
+  .chev{font-size:10px;color:var(--text3);transition:transform .15s;flex-shrink:0}
+  .chev.open{transform:rotate(90deg)}
+  .action-body{display:none;padding:12px 14px}
+  .action-body.open{display:block}
+  .progress-wrap{height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;margin-top:4px}
+  .progress-fill{height:100%;background:#639922;border-radius:2px;transition:width .3s}
+  .ms-block{margin-bottom:14px}
+  .ms-header{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+  .ms-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+  .ms-label{font-size:12px;font-weight:500;color:var(--text2)}
+  .ms-date{padding:3px 8px;border:0.5px solid var(--border);border-radius:4px;font-size:12px;width:150px;background:var(--bg);color:var(--text)}
+  .ms-date.complete{border-color:var(--success-border);background:var(--success-bg)}
+  .badge{display:inline-flex;align-items:center;font-size:11px;padding:2px 8px;border-radius:4px}
+  .badge-overdue{background:var(--danger-bg);color:var(--danger-text)}
+  .badge-soon{background:var(--warn-bg);color:var(--warn-text)}
+  .badge-done{background:var(--success-bg);color:var(--success-text)}
+  .commit-list{border-top:0.5px solid var(--border);padding-top:6px}
+  .commit{display:grid;grid-template-columns:18px 1fr 90px;gap:8px;align-items:start;padding:7px 0;border-bottom:0.5px solid var(--border)}
+  .commit:last-child{border-bottom:none}
+  .commit input[type=checkbox]{width:14px;height:14px;margin-top:2px;accent-color:#639922;cursor:pointer}
+  .commit-text{font-size:12px;line-height:1.5}
+  .commit-text.checked{text-decoration:line-through;color:var(--text3)}
+  .done-criteria{font-size:11px;color:var(--text3);line-height:1.4;margin-top:4px;padding:4px 8px;border-left:2px solid var(--border2)}
+  .owner-pill{font-size:10px;font-weight:500;padding:2px 7px;border-radius:3px;white-space:nowrap;text-align:center;align-self:start;margin-top:2px}
+  .gate-warn{display:flex;align-items:center;gap:6px;font-size:12px;padding:6px 10px;background:var(--warn-bg);color:var(--warn-text);border-radius:var(--radius);margin-bottom:10px;border:0.5px solid var(--warn-border)}
+
+  /* ── Check-in ── */
+  .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+  .stat-card{background:var(--bg2);border-radius:var(--radius);padding:12px 16px}
+  .stat-label{font-size:11px;color:var(--text3);margin-bottom:2px}
+  .stat-val{font-size:22px;font-weight:500}
+  .col-header{display:grid;grid-template-columns:70px 1fr 110px 24px;gap:10px;padding:4px 0 6px;border-bottom:0.5px solid var(--border2)}
+  .col-lbl{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--text3)}
+  .score-row{display:grid;grid-template-columns:70px 1fr 110px 24px;gap:10px;align-items:start;padding:8px 0;border-bottom:0.5px solid var(--border)}
+  .score-row:last-child{border-bottom:none}
+  .score-notes{width:100%;min-height:48px;font-size:12px}
+  .score-sel{width:100%;font-size:12px;padding:4px 6px;border:0.5px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text)}
+  .alert-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:0.5px solid var(--border);font-size:12px}
+  .alert-row:last-child{border-bottom:none}
+  .coaching-box{background:var(--bg2);border-radius:var(--radius-lg);padding:16px 20px;margin-top:16px;border:0.5px solid var(--border)}
+  .coaching-item{font-size:12px;line-height:1.5;padding:6px 0;border-bottom:0.5px solid var(--border);display:flex;gap:8px;align-items:flex-start}
+  .coaching-item:last-child{border-bottom:none}
+  .ci-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:5px}
+
+  /* ── History ── */
+  .history-item{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:8px}
+  .history-date{font-size:11px;color:var(--text3);margin-bottom:6px}
+  .history-scores{display:flex;gap:4px;flex-wrap:wrap}
+  .section-gap{margin-bottom:20px}
+  .checkin-title{font-size:13px;font-weight:500;margin-bottom:10px}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════ AUTH SCREEN ══════════════════════ -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <div class="auth-logo">🚀</div>
+    <div class="auth-title">AVD Roadmap Tracker</div>
+    <div class="auth-sub">Accelerating Value Delivery<br/>Liferay Product Delivery Department</div>
+    <a id="login-btn" class="btn-github" href="#">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      Sign in with GitHub
+    </a>
+    <div class="auth-note">Access is restricted to authorised team members.<br/>Your GitHub account will be verified on sign-in.</div>
+    <div id="auth-error"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════ APP SCREEN ══════════════════════ -->
+<div id="app-screen">
+<div class="shell">
+  <div class="app-header">
+    <div>
+      <div class="app-title">AVD Implementation Roadmap</div>
+      <div class="app-sub">Accelerating Value Delivery · Liferay Product Delivery</div>
+    </div>
+    <div class="header-right">
+      <div class="team-badge" id="header-team">No team set</div>
+      <div class="user-badge">
+        <img class="user-avatar" id="user-avatar" src="" alt=""/>
+        <span id="user-login"></span>
+      </div>
+      <button class="btn-signout" onclick="signOut()">Sign out</button>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="nav-btn active" onclick="showView('setup',this)">Team Setup</button>
+    <button class="nav-btn" onclick="showView('roadmap',this)">Implementation Roadmap</button>
+    <button class="nav-btn" onclick="showView('checkin',this)">Bi-weekly Check-in</button>
+    <button class="nav-btn" onclick="showView('history',this)">History</button>
+  </div>
+
+  <!-- SETUP -->
+  <div class="view active" id="view-setup">
+    <div class="card">
+      <div class="field-grid">
+        <div>
+          <div class="field-row"><span class="field-label">Product Team</span><input class="field-input" id="f-team" placeholder="e.g. Headless"/></div>
+          <div class="field-row"><span class="field-label">Tech Lead (TL)</span><input class="field-input" id="f-tl" placeholder="@name"/></div>
+          <div class="field-row"><span class="field-label">Product Manager</span><input class="field-input" id="f-pm" placeholder="@name or N/A"/></div>
+          <div class="field-row"><span class="field-label">Product Owner</span><input class="field-input" id="f-po" placeholder="@name"/></div>
+        </div>
+        <div>
+          <div class="field-row"><span class="field-label">Eng. PM (EPM)</span><input class="field-input" id="f-epm" placeholder="@name"/></div>
+          <div class="field-row"><span class="field-label">Product Designer</span><input class="field-input" id="f-pd" placeholder="@name or N/A"/></div>
+          <div class="field-row"><span class="field-label">Pilot Initiative</span><input class="field-input" id="f-init" placeholder="LCD-XXXXX — name"/></div>
+          <div class="field-row"><span class="field-label">Kick-off Date</span><input class="field-input" id="f-kickoff" type="date"/></div>
+        </div>
+      </div>
+      <div class="save-bar">
+        <button class="btn-primary" onclick="saveSetup()">Save team setup</button>
+        <span id="setup-msg" class="save-msg" style="display:none">Saved.</span>
+      </div>
+    </div>
+    <div class="info-box" style="margin-bottom:12px">
+      <strong>Data storage:</strong> All data is saved in your browser's localStorage, keyed to your GitHub username + team name. Each EPM's data is independent. Use <strong>Export JSON</strong> to share a snapshot with the Program Manager or commit it to the repo for a team history trail.
+    </div>
+    <div class="save-bar" style="border:none;padding:0;margin-top:0">
+      <button class="btn-ghost" onclick="exportData()">Export data as JSON</button>
+      <label class="btn-ghost" style="display:inline-flex;align-items:center;gap:6px">
+        Import JSON <input type="file" accept=".json" style="display:none" onchange="importData(event)"/>
+      </label>
+      <button class="btn-danger" onclick="resetData()">Reset all data</button>
+    </div>
+  </div>
+
+  <!-- ROADMAP -->
+  <div class="view" id="view-roadmap">
+    <div id="roadmap-banner" style="font-size:12px;color:var(--text2);margin-bottom:12px"></div>
+    <div id="roadmap-content"></div>
+    <div class="save-bar">
+      <button class="btn-primary" onclick="saveRoadmap()">Save progress</button>
+      <span id="roadmap-msg" class="save-msg" style="display:none">Saved.</span>
+    </div>
+  </div>
+
+  <!-- CHECK-IN -->
+  <div class="view" id="view-checkin">
+    <div class="stat-grid" id="ci-stats"></div>
+    <div class="section-gap">
+      <div class="checkin-title">Milestone alerts</div>
+      <div id="ci-alerts"></div>
+    </div>
+    <div class="section-gap">
+      <div class="checkin-title">Adoption scores — how useful is each action right now?</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:10px">1 Awareness · 2 Friction · 3 Functional · 4 Beneficial · 5 Game changer</div>
+      <div class="col-header">
+        <span class="col-lbl">Action</span>
+        <span class="col-lbl">Notes / blockers</span>
+        <span class="col-lbl">Score</span>
+        <span class="col-lbl"></span>
+      </div>
+      <div id="ci-scores"></div>
+    </div>
+    <div class="save-bar">
+      <button class="btn-primary" onclick="saveCheckin()">Save check-in</button>
+      <button class="btn-ghost" onclick="genCoaching()">Get coaching prompts</button>
+      <span id="checkin-msg" class="save-msg" style="display:none">Check-in saved.</span>
+    </div>
+    <div id="coaching-box" class="coaching-box" style="display:none">
+      <div style="font-size:12px;font-weight:500;color:var(--text2);margin-bottom:8px">Coaching focus for this check-in</div>
+      <div id="coaching-items"></div>
+    </div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="view" id="view-history">
+    <div style="font-size:13px;color:var(--text2);margin-bottom:12px">All saved bi-weekly check-ins for this team, newest first.</div>
+    <div id="history-list"></div>
+  </div>
+</div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════
+   CONFIG — edit these two values before deploy
+   ══════════════════════════════════════════ */
+const GITHUB_CLIENT_ID   = 'Ov23lilKf1wCMdYE3KmI';
+const GATEKEEPER_URL     = 'https://avd-tracker-gatekeeper.onrender.com';
+const ALLOWED_USERS      = [                           // lowercase GitHub usernames
+  'lucianasilva',        // Program Manager — update with real GitHub username
+  // add EPM and TL GitHub usernames below, one per line, lowercase
+  // 'epm-bpm-username',
+  // 'epm-cm-username',
+  // 'epm-cloud-username',
+  // 'tl-bpm-username',
+];
+
+/* ══════════════════════════════════════════
+   AUTH
+   ══════════════════════════════════════════ */
+function buildAuthURL() {
+  const state = crypto.randomUUID();
+  sessionStorage.setItem('oauth_state', state);
+  const params = new URLSearchParams({
+    client_id: GITHUB_CLIENT_ID,
+    redirect_uri: location.origin + location.pathname,
+    scope: 'read:user',
+    state,
+  });
+  return 'https://github.com/login/oauth/authorize?' + params;
+}
+
+document.getElementById('login-btn').href = '#';
+document.getElementById('login-btn').onclick = (e) => {
+  e.preventDefault();
+  location.href = buildAuthURL();
+};
+
+async function exchangeCode(code) {
+  // Gatekeeper is a tiny proxy that adds your client_secret server-side
+  const res = await fetch(`${GATEKEEPER_URL}/authenticate/${code}`);
+  const data = await res.json();
+  return data.token;
+}
+
+async function getGitHubUser(token) {
+  const res = await fetch('https://api.github.com/user', {
+    headers: { Authorization: 'token ' + token }
+  });
+  return res.json();
+}
+
+function showError(msg) {
+  const el = document.getElementById('auth-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+async function handleOAuthCallback() {
+  const params = new URLSearchParams(location.search);
+  const code  = params.get('code');
+  const state = params.get('state');
+
+  if (!code) return;
+
+  // Validate state to prevent CSRF
+  if (state !== sessionStorage.getItem('oauth_state')) {
+    showError('Invalid state parameter. Please try again.');
+    return;
+  }
+  sessionStorage.removeItem('oauth_state');
+
+  // Clean URL
+  history.replaceState({}, '', location.pathname);
+
+  try {
+    const token = await exchangeCode(code);
+    if (!token) { showError('Authentication failed. Please try again.'); return; }
+
+    const user = await getGitHubUser(token);
+    const login = user.login?.toLowerCase();
+
+    if (!ALLOWED_USERS.includes(login)) {
+      showError(`Access denied. Your GitHub account (${login}) is not authorised. Contact the program manager.`);
+      return;
+    }
+
+    // Store session
+    localStorage.setItem('avd_session', JSON.stringify({
+      login, name: user.name || login, avatar: user.avatar_url, token
+    }));
+    launchApp(login, user.name || login, user.avatar_url);
+
+  } catch(e) {
+    showError('An error occurred during sign-in. Please try again.');
+  }
+}
+
+function checkExistingSession() {
+  try {
+    const s = JSON.parse(localStorage.getItem('avd_session') || 'null');
+    if (s?.login && ALLOWED_USERS.includes(s.login)) {
+      launchApp(s.login, s.name, s.avatar);
+      return true;
+    }
+  } catch(e) {}
+  return false;
+}
+
+function launchApp(login, name, avatar) {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display  = 'block';
+  document.getElementById('user-login').textContent = name;
+  document.getElementById('user-avatar').src = avatar;
+  currentUser = login;
+  applySetup();
+  renderRoadmap();
+}
+
+function signOut() {
+  localStorage.removeItem('avd_session');
+  location.reload();
+}
+
+/* ══════════════════════════════════════════
+   DATA
+   ══════════════════════════════════════════ */
+let currentUser = '';
+
+function storageKey() {
+  const team = (getData().setup?.team || 'default').replace(/\s+/g,'-').toLowerCase();
+  return `avd-data-${currentUser}-${team}`;
+}
+
+function getData() {
+  try { return JSON.parse(localStorage.getItem(storageKey()) || '{}'); } catch(e) { return {}; }
+}
+function setData(d) { localStorage.setItem(storageKey(), JSON.stringify(d)); }
+
+function flash(id) {
+  const el = document.getElementById(id);
+  el.style.display = 'inline-flex';
+  setTimeout(() => el.style.display = 'none', 2500);
+}
+
+/* ══════════════════════════════════════════
+   ACTIONS DATA
+   ══════════════════════════════════════════ */
+const ACTIONS = [
+  {id:'a1a3',code:'A1+A3',label:'Discovery → Delivery Flow',tagline:'Vertical slicing + progressive elaboration',color:'#534AB7',textColor:'#EEEDFE',
+   milestones:[
+    {week:'Week 1',commits:[
+      {text:'All roles read AVD Vertical Slicing material',owner:'All',done:'EPM confirms reading in Slack channel'},
+      {text:'Pilot initiative chosen and recorded in the roadmap',owner:'EPM',done:'Initiative name + Epic link filled in setup'}
+    ]},
+    {week:'Week 2',commits:[
+      {text:'PM/PO/PD identify the first minimal vertical slice',owner:'PM/PO/PD',done:'Slice documented: which problem? which user? Includes UI + logic + data?'},
+      {text:'TL approves first slice — riskiest path is first',owner:'TL',done:'Approval documented in writing (Epic comment or Slack)'}
+    ]},
+    {week:'Month 1',commits:[
+      {text:'Remaining initiative backlog broken down: horizontal → vertical Epics',owner:'PM/PO/PD',done:'TL approves full slicing plan. No Epic is purely technical (UI-only, API-only, DB-only)'},
+      {text:'1-Iteration Ready Buffer active at all times',owner:'EPM',done:'EPM shows on board that Discovery is always 1 iteration ahead of Delivery'},
+      {text:'Discovery and Delivery running in parallel',owner:'All',done:'EPM documents first parallel cycle in bi-weekly check-in'}
+    ]}
+  ]},
+  {id:'a2',code:'A2',label:'WIP Limits',tagline:'Restrict to flow faster',color:'#0F6E56',textColor:'#E1F5EE',
+   milestones:[
+    {week:'Week 1',commits:[
+      {text:'EPM and TL define WIP limit per flow stage (Ideation → Closed)',owner:'EPM',done:'Number defined and documented. E.g. "max 12 active Epics"'},
+      {text:'Jira board updated with visual WIP limit indicator per column',owner:'EPM',done:'Board is public and shows the limit visually'},
+      {text:'Pull system rule communicated: only start new Epic when WIP falls below limit',owner:'EPM',done:'Team confirms understanding. Any resistance logged'}
+    ]},
+    {week:'Week 2',commits:[
+      {text:'Visual indicator for Epics blocked more than 1 iteration created',owner:'EPM',done:'Blocked Epic ≥1 iteration appears highlighted automatically'},
+      {text:'First WIP violation documented with reason',owner:'EPM',done:'WIP Follow Up: date, excess Epic, reason, and outcome'}
+    ]}
+  ]},
+  {id:'a4',code:'A4',label:'Eliminate Story Estimations',tagline:'From "how long?" to "small enough?"',color:'#185FA5',textColor:'#E6F1FB',
+   milestones:[
+    {week:'Week 1',commits:[
+      {text:'EPM announces story estimations are suspended from this date',owner:'EPM',done:'Message sent in team channel. No new story receives story points'},
+      {text:'TL takes over refinement with slicing focus: "Can this be done in ≤5 days?"',owner:'TL',done:'TL facilitates at least 1 refinement without story points'}
+    ]},
+    {week:'Week 2',commits:[
+      {text:'EPM records Cycle Time and Throughput baseline for forecasting',owner:'EPM',done:'Story Cycle Time Action Plan created with historical data'}
+    ]}
+  ]},
+  {id:'a5',code:'A5',label:'Story Cycle Time',tagline:'Target: 85th pct ≤ 15 days by end of 2026',color:'#854F0B',textColor:'#FAEEDA',
+   milestones:[
+    {week:'Week 1',commits:[
+      {text:'EPM records current 85th percentile Cycle Time as official baseline',owner:'EPM',done:'Baseline documented in Story CT Action Plan with date'},
+      {text:'EPM fills Action Plan with root cause of top outliers',owner:'EPM',done:'At least 3 outliers analyzed with identified root cause'}
+    ]},
+    {week:'Month 1',commits:[
+      {text:'EPM teaches TL to read metrics in Tableau',owner:'EPM',done:'TL can identify at-risk stories on the dashboard independently'},
+      {text:'First round of quick wins from Action Plan implemented',owner:'All',done:'At least 1 Action Plan item executed with evidence of result'},
+      {text:'Bi-weekly Cycle Time review cadence established',owner:'EPM',done:'Recurring invite in calendar. First review completed with data'}
+    ]}
+  ]},
+  {id:'a6',code:'A6',label:'Iteration Purpose',tagline:'Every iteration has a Value Goal — not a ticket list',color:'#3B6D11',textColor:'#EAF3DE',
+   milestones:[
+    {week:'Week 1',commits:[
+      {text:'PM/PO define Value Goal for the first pilot iteration',owner:'PM/PO',done:'"By end of this iteration, [user] can [action]. Success = [metric]"'},
+      {text:'PM/PO align all stories to the goal — off-goal stories deferred',owner:'PM/PO',done:'All stories have label or comment linking them to the goal'}
+    ]},
+    {week:'Week 2 (end of 1st iteration)',commits:[
+      {text:'PO validates whether goal was achieved — independent of ticket count',owner:'PM/PO',done:'"Goal achieved: yes/no. Evidence: [link or description]"'},
+      {text:'If goal NOT achieved: EPM runs Goal Miss Protocol',owner:'EPM',done:'(1) What blocked it? (2) Is the goal still valid? (3) What changes next iteration?'}
+    ]}
+  ]},
+  {id:'a7',code:'A7',label:'Outcome Metrics',tagline:'Gate: requires A6 score ≥ 3 before starting',color:'#993C1D',textColor:'#FAECE7',gate:true,
+   milestones:[
+    {week:'Week 1 (after A6 gate)',commits:[
+      {text:'PM shares value context with team: real use cases, customer impact, market context',owner:'PM/PO',done:'Team can articulate "why does this matter to the customer?" without docs'},
+      {text:'EPM shifts bi-weekly reporting to Value Outcome: what changed for the user?',owner:'EPM',done:'Next report does not mention ticket count. Mentions user impact'}
+    ]},
+    {week:'Month 1 (after A6 gate)',commits:[
+      {text:'EPM begins tracking Epic Full Cycle Time and documents baseline',owner:'EPM',done:'Epic Full CT Action Plan created. 50% reduction target documented'},
+      {text:'First Epic Value Demo completed — Epic is only Done after demo',owner:'EPM',done:'Demo recorded or documented. No Epic marked Done without demo'}
+    ]}
+  ]}
+];
+
+const OWNER_COLORS = {
+  'EPM':      {bg:'#E6F1FB',color:'#0C447C'},
+  'TL':       {bg:'#EAF3DE',color:'#27500A'},
+  'PM/PO':    {bg:'#FAEEDA',color:'#633806'},
+  'PM/PO/PD':{bg:'#FAEEDA',color:'#633806'},
+  'All':      {bg:'#F1EFE8',color:'#444441'}
+};
+
+/* ══════════════════════════════════════════
+   SETUP
+   ══════════════════════════════════════════ */
+function applySetup() {
+  const s = getData().setup || {};
+  ['team','tl','pm','po','epm','pd','init','kickoff'].forEach(f => {
+    const el = document.getElementById('f-'+f);
+    if (el && s[f]) el.value = s[f];
+  });
+  updateHeaderTeam();
+}
+
+function updateHeaderTeam() {
+  document.getElementById('header-team').textContent = getData().setup?.team || 'No team set';
+}
+
+function saveSetup() {
+  const d = getData();
+  if (!d.setup) d.setup = {};
+  ['team','tl','pm','po','epm','pd','init','kickoff'].forEach(f => {
+    const el = document.getElementById('f-'+f);
+    if (el) d.setup[f] = el.value;
+  });
+  setData(d);
+  updateHeaderTeam();
+  renderRoadmap();
+  flash('setup-msg');
+}
+
+/* ══════════════════════════════════════════
+   HELPERS
+   ══════════════════════════════════════════ */
+function showView(v, btn) {
+  document.querySelectorAll('.view').forEach(x => x.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(x => x.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (v === 'checkin') renderCheckin();
+  if (v === 'history') renderHistory();
+  if (v === 'roadmap') renderRoadmap();
+}
+
+function ck(aid, mi, ci) { return `${aid}-${mi}-${ci}`; }
+function dk(aid, mi)     { return `${aid}-d${mi}`; }
+
+function isOverdue(dateStr, done) { return !done && dateStr && new Date(dateStr) < new Date(); }
+function isDueSoon(dateStr, done) {
+  if (!dateStr || done) return false;
+  const diff = (new Date(dateStr) - new Date()) / 86400000;
+  return diff >= 0 && diff <= 7;
+}
+
+/* ══════════════════════════════════════════
+   ROADMAP
+   ══════════════════════════════════════════ */
+function renderRoadmap() {
+  const d = getData();
+  const s = d.setup || {};
+  const commits = d.checks?.commits || {};
+  const dates   = d.checks?.dates   || {};
+  const open    = d.checks?.open    || {};
+
+  const ko = s.kickoff ? new Date(s.kickoff).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
+  document.getElementById('roadmap-banner').innerHTML =
+    `<strong>${s.team||'—'}</strong> &nbsp;·&nbsp; EPM: ${s.epm||'—'} &nbsp;·&nbsp; TL: ${s.tl||'—'} &nbsp;·&nbsp; Kick-off: ${ko}`;
+
+  document.getElementById('roadmap-content').innerHTML = ACTIONS.map(a => {
+    const total = a.milestones.reduce((s,m) => s+m.commits.length, 0);
+    const done  = a.milestones.reduce((s,m,mi) => s+m.commits.filter((_,ci) => commits[ck(a.id,mi,ci)]).length, 0);
+    const pct   = total ? Math.round(done/total*100) : 0;
+    const isOpen = open[a.id] !== false;
+
+    const body = a.milestones.map((m,mi) => {
+      const dv      = dates[dk(a.id,mi)] || '';
+      const allDone = m.commits.every((_,ci) => commits[ck(a.id,mi,ci)]);
+      return `
+        <div class="ms-block">
+          <div class="ms-header">
+            <span class="ms-dot" style="background:${a.color}"></span>
+            <span class="ms-label">${m.week}</span>
+            <input type="date" class="ms-date${allDone?' complete':''}" value="${dv}"
+              onchange="saveDate('${a.id}',${mi},this.value)"/>
+            ${isOverdue(dv,allDone) ? '<span class="badge badge-overdue">Overdue</span>' : ''}
+            ${isDueSoon(dv,allDone) ? '<span class="badge badge-soon">Due soon</span>'   : ''}
+            ${allDone               ? '<span class="badge badge-done">Complete</span>'   : ''}
+          </div>
+          <div class="commit-list">
+            ${m.commits.map((c,ci) => {
+              const key = ck(a.id,mi,ci);
+              const chk = commits[key];
+              const oc  = OWNER_COLORS[c.owner] || OWNER_COLORS['All'];
+              return `<div class="commit">
+                <input type="checkbox" ${chk?'checked':''} onchange="saveCommit('${a.id}',${mi},${ci},this.checked)"/>
+                <div>
+                  <div class="commit-text${chk?' checked':''}">${c.text}</div>
+                  <div class="done-criteria">Done when: ${c.done}</div>
+                </div>
+                <span class="owner-pill" style="background:${oc.bg};color:${oc.color}">${c.owner}</span>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>`;
+    }).join('');
+
+    return `
+      <div class="action-card">
+        <div class="action-head" onclick="toggleAction('${a.id}')">
+          <span class="ac-badge" style="background:${a.color};color:${a.textColor}">${a.code}</span>
+          <span class="ac-title">${a.label}</span>
+          <span class="ac-meta">${done}/${total} &nbsp; ${pct}%</span>
+          <span class="chev ${isOpen?'open':''}" id="chev-${a.id}">&#9658;</span>
+        </div>
+        <div style="padding:4px 14px 0;background:var(--bg2)">
+          <div class="progress-wrap"><div class="progress-fill" style="width:${pct}%"></div></div>
+          <div style="font-size:10px;color:var(--text3);padding:2px 0 6px">${a.tagline}</div>
+        </div>
+        <div class="action-body${isOpen?' open':''}" id="body-${a.id}">
+          ${a.gate ? '<div class="gate-warn">&#9888; Gate: requires A6 score &#8805; 3 before starting</div>' : ''}
+          ${body}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function toggleAction(id) {
+  const body = document.getElementById('body-'+id);
+  const chev = document.getElementById('chev-'+id);
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  chev.classList.toggle('open', !isOpen);
+  const d = getData();
+  if (!d.checks) d.checks = {};
+  if (!d.checks.open) d.checks.open = {};
+  d.checks.open[id] = !isOpen;
+  setData(d);
+}
+
+function saveCommit(aid, mi, ci, val) {
+  const d = getData();
+  if (!d.checks) d.checks = {};
+  if (!d.checks.commits) d.checks.commits = {};
+  d.checks.commits[ck(aid,mi,ci)] = val;
+  setData(d);
+  renderRoadmap();
+}
+
+function saveDate(aid, mi, val) {
+  const d = getData();
+  if (!d.checks) d.checks = {};
+  if (!d.checks.dates) d.checks.dates = {};
+  d.checks.dates[dk(aid,mi)] = val;
+  setData(d);
+  renderRoadmap();
+}
+
+function saveRoadmap() { flash('roadmap-msg'); }
+
+/* ══════════════════════════════════════════
+   CHECK-IN
+   ══════════════════════════════════════════ */
+function renderCheckin() {
+  const d       = getData();
+  const commits = d.checks?.commits    || {};
+  const dates   = d.checks?.dates      || {};
+  const scores  = d.checks?.scores     || {};
+  const notes   = d.checks?.scoreNotes || {};
+
+  const total = ACTIONS.reduce((s,a) => s+a.milestones.reduce((ss,m) => ss+m.commits.length,0),0);
+  const done  = ACTIONS.reduce((s,a) => s+a.milestones.reduce((ss,m,mi) => ss+m.commits.filter((_,ci) => commits[ck(a.id,mi,ci)]).length,0),0);
+  const sc    = ACTIONS.map(a => parseInt(scores[a.id]||0)).filter(s => s>0);
+  const avg   = sc.length ? (sc.reduce((a,b)=>a+b,0)/sc.length).toFixed(1) : '—';
+
+  const overdue = [];
+  ACTIONS.forEach(a => a.milestones.forEach((m,mi) => {
+    const dv = dates[dk(a.id,mi)];
+    if (isOverdue(dv, m.commits.every((_,ci) => commits[ck(a.id,mi,ci)])))
+      overdue.push(`${a.code} — ${m.week}`);
+  }));
+
+  document.getElementById('ci-stats').innerHTML = `
+    <div class="stat-card"><div class="stat-label">Overall progress</div><div class="stat-val">${total?Math.round(done/total*100):0}%</div></div>
+    <div class="stat-card"><div class="stat-label">Avg adoption score</div><div class="stat-val">${avg}</div></div>
+    <div class="stat-card"><div class="stat-label">Overdue milestones</div><div class="stat-val" style="color:${overdue.length?'#A32D2D':'#639922'}">${overdue.length}</div></div>`;
+
+  document.getElementById('ci-alerts').innerHTML = overdue.length
+    ? overdue.map(o => `<div class="alert-row"><span class="badge badge-overdue">Overdue</span>${o}</div>`).join('')
+    : '<div style="font-size:12px;color:var(--success-text);padding:6px 0">No overdue milestones.</div>';
+
+  document.getElementById('ci-scores').innerHTML = ACTIONS.map(a => {
+    const sv = scores[a.id] || '0';
+    const nv = notes[a.id]  || '';
+    return `<div class="score-row">
+      <span class="ac-badge" style="background:${a.color};color:${a.textColor};font-size:11px">${a.code}</span>
+      <textarea class="score-notes" placeholder="Notes or blockers..." oninput="setNote('${a.id}',this.value)">${nv}</textarea>
+      <select class="score-sel" onchange="setScore('${a.id}',this.value)">
+        <option value="0" ${sv==='0'?'selected':''}>— not started</option>
+        <option value="1" ${sv==='1'?'selected':''}>1 Awareness</option>
+        <option value="2" ${sv==='2'?'selected':''}>2 Friction</option>
+        <option value="3" ${sv==='3'?'selected':''}>3 Functional</option>
+        <option value="4" ${sv==='4'?'selected':''}>4 Beneficial</option>
+        <option value="5" ${sv==='5'?'selected':''}>5 Game changer</option>
+      </select>
+      <span style="font-size:11px;color:var(--text3);text-align:center;padding-top:4px">${['—','!','~','ok','+','*'][parseInt(sv)||0]}</span>
+    </div>`;
+  }).join('');
+}
+
+function setScore(id, val) {
+  const d = getData();
+  if (!d.checks) d.checks = {};
+  if (!d.checks.scores) d.checks.scores = {};
+  d.checks.scores[id] = val;
+  setData(d);
+  renderCheckin();
+}
+function setNote(id, val) {
+  const d = getData();
+  if (!d.checks) d.checks = {};
+  if (!d.checks.scoreNotes) d.checks.scoreNotes = {};
+  d.checks.scoreNotes[id] = val;
+  setData(d);
+}
+
+function saveCheckin() {
+  const d = getData();
+  if (!d.history) d.history = [];
+  const total = ACTIONS.reduce((s,a) => s+a.milestones.reduce((ss,m) => ss+m.commits.length,0),0);
+  const done  = ACTIONS.reduce((s,a) => s+a.milestones.reduce((ss,m,mi) => ss+m.commits.filter((_,ci) => (d.checks?.commits||{})[ck(a.id,mi,ci)]).length,0),0);
+  d.history.unshift({
+    date: new Date().toISOString(),
+    scores: {...(d.checks?.scores||{})},
+    notes:  {...(d.checks?.scoreNotes||{})},
+    progress: total ? Math.round(done/total*100) : 0
+  });
+  setData(d);
+  flash('checkin-msg');
+  renderHistory();
+}
+
+function genCoaching() {
+  const scores = getData().checks?.scores || {};
+  const notes  = getData().checks?.scoreNotes || {};
+  const items  = [];
+  ACTIONS.forEach(a => {
+    const sc = parseInt(scores[a.id]||0);
+    const n  = notes[a.id]||'';
+    if (sc === 0) items.push({color:'#A32D2D', text:`${a.code} has no score yet — ask: "Has the team started this practice at all?"`});
+    else if (sc <= 2) items.push({color:'#A32D2D', text:`${a.code} score ${sc} — ask: "What is the main blocker? Tool, process, or stakeholder expectation?"`});
+    else if (sc >= 4) items.push({color:'#3B6D11', text:`${a.code} score ${sc} — bright spot.${n?' Note: '+n+'.':''} Prepare a success story for the next Team Leads Gathering.`});
+  });
+  if (parseInt(scores['a6']||0) < 3)
+    items.push({color:'#854F0B', text:'A7 gate is NOT met: A6 score is below 3. Do not start Outcome Metrics work yet.'});
+  if (!items.length)
+    items.push({color:'#185FA5', text:'All actions progressing well. Focus the sync on reducing WIP and pushing toward the 15-day Cycle Time target.'});
+  document.getElementById('coaching-items').innerHTML =
+    items.map(i => `<div class="coaching-item"><span class="ci-dot" style="background:${i.color}"></span>${i.text}</div>`).join('');
+  document.getElementById('coaching-box').style.display = 'block';
+}
+
+/* ══════════════════════════════════════════
+   HISTORY
+   ══════════════════════════════════════════ */
+function renderHistory() {
+  const h  = getData().history || [];
+  const el = document.getElementById('history-list');
+  if (!h.length) { el.innerHTML='<div style="font-size:13px;color:var(--text3)">No check-ins saved yet.</div>'; return; }
+  const bgs  = ['#F1EFE8','#FCEBEB','#FAEEDA','#E6F1FB','#EAF3DE','#EEEDFE'];
+  const cols = ['#888780','#A32D2D','#854F0B','#185FA5','#3B6D11','#3C3489'];
+  el.innerHTML = h.map(entry => {
+    const dt = new Date(entry.date).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+    const scoreHtml = ACTIONS.map(a => {
+      const sv = parseInt(entry.scores?.[a.id]||0);
+      return `<span class="owner-pill" style="background:${bgs[sv]};color:${cols[sv]}">${a.code} ${sv||'—'}</span>`;
+    }).join('');
+    const noteHtml = ACTIONS.filter(a => entry.notes?.[a.id]?.trim())
+      .map(a => `<span style="color:var(--text3)">${a.code}:</span> ${entry.notes[a.id]}`).join(' · ');
+    return `<div class="history-item">
+      <div class="history-date">${dt} · Progress: ${entry.progress}%</div>
+      <div class="history-scores" style="margin-bottom:${noteHtml?'8px':'0'}">${scoreHtml}</div>
+      ${noteHtml ? `<div style="font-size:11px;color:var(--text2);line-height:1.5">${noteHtml}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+/* ══════════════════════════════════════════
+   EXPORT / IMPORT
+   ══════════════════════════════════════════ */
+function exportData() {
+  const d    = getData();
+  const team = d.setup?.team || 'data';
+  const blob = new Blob([JSON.stringify(d,null,2)],{type:'application/json'});
+  const a    = document.createElement('a');
+  a.href     = URL.createObjectURL(blob);
+  a.download = `avd-${team}-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+}
+
+function importData(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    try {
+      setData(JSON.parse(ev.target.result));
+      applySetup();
+      renderRoadmap();
+      alert('Data imported successfully.');
+    } catch { alert('Invalid JSON file.'); }
+  };
+  r.readAsText(file);
+}
+
+function resetData() {
+  if (confirm('Reset all data for this team? This cannot be undone.')) {
+    localStorage.removeItem(storageKey());
+    location.reload();
+  }
+}
+
+/* ══════════════════════════════════════════
+   INIT
+   ══════════════════════════════════════════ */
+if (!checkExistingSession()) handleOAuthCallback();
+</script>
+</body>
+</html>
