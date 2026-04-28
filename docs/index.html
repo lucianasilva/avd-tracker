@@ -290,7 +290,7 @@ const GATEKEEPER_URL    = 'https://avd-tracker-gatekeeper.onrender.com';
 const SHEETS_API_URL    = 'https://script.google.com/a/macros/liferay.com/s/AKfycbynuaHLDWjLXCTAZId2oQhl452s94Z-z79XzQ0aKLkx0JF2ZggzCylw3OxoH8uN5tOl/exec';
 const ADMIN_USERS       = ['lucianasilva'];
 const ALLOWED_USERS     = [
-  'lucianasilva',
+ 'lucianasilva',
   'samuelromeiro',
   'mariana-huggins',
   'natalia-lacerda-cunha',
@@ -455,9 +455,8 @@ function flash(id)  { const el=document.getElementById(id); el.style.display='in
 /* ══ SHEETS SYNC ══ */
 async function syncToSheets(payload) {
   try {
-    await fetch(SHEETS_API_URL, {
+    await fetch(GATEKEEPER_URL + '/sheets', {
       method: 'POST',
-      mode: 'no-cors',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
@@ -663,7 +662,7 @@ async function loadDashboard() {
   document.getElementById('sync-spinner').style.display='inline';
   document.getElementById('sync-time').textContent='Loading...';
   try {
-    const res  = await fetch(SHEETS_API_URL);
+    const res  = await fetch(GATEKEEPER_URL + '/sheets');
     const data = await res.json();
     renderDashboard(data);
     document.getElementById('sync-time').textContent='Last updated: '+new Date().toLocaleTimeString();
