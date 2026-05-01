@@ -201,7 +201,7 @@
 <div class="shell">
   <div class="app-header">
     <div>
-      <div class="app-title">Accelerate Value Delivery Implementation Roadmap</div>
+      <div class="app-title">Accelerate Value Delivery Tracker</div>
       <div class="app-sub">Accelerating Value Delivery · Liferay Product Delivery</div>
     </div>
     <div class="header-right">
@@ -584,14 +584,14 @@ let isAdmin = false;
 function buildAuthURL() {
   const state = crypto.randomUUID();
   sessionStorage.setItem('oauth_state', state);
-  return 'https://github.com/login/oauth/authorize?' + new URLSearchParams({
+  return 'https://github.com//oauth/authorize?' + new URLSearchParams({
     client_id: GITHUB_CLIENT_ID,
     redirect_uri: location.origin + location.pathname,
     scope: 'read:user', state
   });
 }
 
-document.getElementById('login-btn').onclick = e => { e.preventDefault(); location.href = buildAuthURL(); };
+document.getElementById('-btn').onclick = e => { e.preventDefault(); location.href = buildAuthURL(); };
 
 async function handleOAuthCallback() {
   const params = new URLSearchParams(location.search);
