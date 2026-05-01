@@ -246,10 +246,12 @@
         <span id="setup-msg" class="save-msg" style="display:none">Saved.</span>
       </div>
     </div>
+    <div style="margin-top:10px;padding:10px 12px;background:var(--bg2);border-radius:var(--radius);font-size:12px;color:var(--text2);line-height:1.6">
+      <strong>Switching computers?</strong> Use the button below to restore your previously exported data on this device.
+    </div>
     <div class="save-bar" style="border:none;padding:8px 0 0;margin-top:0">
-      <button class="btn-ghost" onclick="exportData()">Export data as JSON ↓</button>
       <label class="btn-ghost" style="display:inline-flex;align-items:center;gap:6px;cursor:pointer">
-        Import JSON ↑ <input type="file" accept=".json" style="display:none" onchange="importSingle(event)"/>
+        Restore my data ↑ <input type="file" accept=".json" style="display:none" onchange="importSingle(event)"/>
       </label>
       <button class="btn-danger" onclick="resetData()">Reset all data</button>
     </div>
@@ -294,7 +296,6 @@
     <div class="save-bar">
       <button class="btn-primary" onclick="saveCheckin()">Save check-in</button>
       <button class="btn-ghost" onclick="genCoaching()">Get coaching prompts</button>
-      <button class="btn-ghost" onclick="exportData()" style="margin-left:auto">Export JSON ↓</button>
       <span id="checkin-msg" class="save-msg" style="display:none">Saved.</span>
     </div>
     <div id="coaching-box" class="coaching-box" style="display:none">
@@ -463,7 +464,11 @@
 
     <div class="save-bar">
       <button class="btn-primary" onclick="saveMetrics()">Save flow metrics</button>
+      <button class="btn-ghost" onclick="exportData()" style="margin-left:auto">Export JSON ↓</button>
       <span id="metrics-msg" class="save-msg" style="display:none">Saved.</span>
+    </div>
+    <div style="margin-top:10px;padding:10px 12px;background:var(--bg2);border-radius:var(--radius);font-size:12px;color:var(--text2);line-height:1.6">
+      ✅ Done with your bi-weekly update? Click <strong>Export JSON ↓</strong> and send the file to <strong>lucianasilva@liferay.com</strong> so the program manager can track progress across all teams.
     </div>
   </div>
 
