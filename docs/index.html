@@ -145,6 +145,12 @@
   .trend-scores{display:flex;gap:3px}
   .no-data{font-size:12px;color:var(--text3);font-style:italic}
 
+
+  .goal-field-wrap{display:flex;align-items:center;gap:8px;margin-bottom:12px;padding:8px 12px;background:var(--bg2);border-radius:var(--radius);border:0.5px solid var(--border)}
+  .goal-field-label{font-size:11px;font-weight:500;color:var(--text2);white-space:nowrap}
+  .goal-field-input{flex:1;font-size:12px;padding:4px 8px;border:0.5px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text)}
+  .goal-saved{font-size:10px;color:var(--success-text);margin-left:4px}
+
   /* Flow Metrics */
   .metric-block{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:16px 20px;margin-bottom:12px}
   .metric-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px}
@@ -212,8 +218,8 @@
     <button class="nav-btn active" onclick="showView('setup',this)">Team Setup</button>
     <button class="nav-btn" onclick="showView('roadmap',this)">Implementation Roadmap</button>
     <button class="nav-btn" onclick="showView('checkin',this)">Bi-weekly Check-in</button>
-    <button class="nav-btn" onclick="showView('history',this)">History</button>
     <button class="nav-btn" onclick="showView('metrics',this)">Flow Metrics</button>
+    <button class="nav-btn" onclick="showView('history',this)">History</button>
     <button class="nav-btn admin-tab" id="admin-tab" style="display:none" onclick="showView('admin',this)">📊 Admin Dashboard</button>
   </div>
 
@@ -345,6 +351,11 @@
         </div>
         <span class="metric-target">Target: reduce by 50% by end of 2026</span>
       </div>
+      <div class="goal-field-wrap">
+        <span class="goal-field-label">Team goal:</span>
+        <input class="goal-field-input" id="m-ect-goal" placeholder="e.g. Reduce from 251 to 125 days by Q3 2026" oninput="saveMetricGoal('ect',this.value)"/>
+        <span class="goal-saved" id="m-ect-goal-saved" style="display:none">Saved</span>
+      </div>
       <div class="metric-inputs">
         <div class="metric-value-wrap">
           <span class="metric-value-label">Current value</span>
@@ -369,6 +380,11 @@
         </div>
         <span class="metric-target">Target: at or below WIP limit at all times</span>
       </div>
+      <div class="goal-field-wrap">
+        <span class="goal-field-label">Team WIP limit:</span>
+        <input class="goal-field-input" id="m-wip-goal" placeholder="e.g. Max 12 active Epics across all stages" oninput="saveMetricGoal('wip',this.value)"/>
+        <span class="goal-saved" id="m-wip-goal-saved" style="display:none">Saved</span>
+      </div>
       <div class="metric-inputs">
         <div class="metric-value-wrap">
           <span class="metric-value-label">Active Epics</span>
@@ -386,6 +402,36 @@
         </div>
       </div>
       <div class="metric-history" id="m-wip-history"></div>
+    </div>
+
+
+    <!-- Flow Handoff -->
+    <div class="metric-block">
+      <div class="metric-header">
+        <div>
+          <div class="metric-title">Improve the Flow Handoff <span style="font-size:11px;font-weight:400;color:var(--text3)">(avg wait time)</span></div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px">A3 · Average wait time from Discovery Completion to Delivery Start</div>
+        </div>
+        <span class="metric-target">Target: reduce by 50% by end of 2026</span>
+      </div>
+      <div class="goal-field-wrap">
+        <span class="goal-field-label">Team goal:</span>
+        <input class="goal-field-input" id="m-fh-goal" placeholder="e.g. Reduce from 43 to 21 days by Q3 2026" oninput="saveMetricGoal('fh',this.value)"/>
+        <span class="goal-saved" id="m-fh-goal-saved" style="display:none">Saved</span>
+      </div>
+      <div class="metric-inputs">
+        <div class="metric-value-wrap">
+          <span class="metric-value-label">Current value</span>
+          <input type="number" class="metric-value-input" id="m-fh-value" placeholder="—" min="0" oninput="saveMetric('fh','value',this.value)"/>
+          <span class="metric-unit">days</span>
+          <div id="m-fh-trend" style="margin-top:6px;text-align:center"></div>
+        </div>
+        <div class="metric-right">
+          <textarea class="metric-textarea" id="m-fh-comment" placeholder="What is causing the handoff delay? Any bottlenecks?" oninput="saveMetric('fh','comment',this.value)"></textarea>
+          <textarea class="metric-textarea" id="m-fh-action" placeholder="Action item: how will we reduce the wait time?" oninput="saveMetric('fh','action',this.value)"></textarea>
+        </div>
+      </div>
+      <div class="metric-history" id="m-fh-history"></div>
     </div>
 
     <div class="save-bar">
@@ -844,7 +890,7 @@ function renderMetrics() {
   const m = d.metrics || {};
 
   // Restore current values
-  ['sct','ect','wip'].forEach(id => {
+  ['sct','ect','wip','fh'].forEach(id => {
     const cur = m[id] || {};
     const valEl = document.getElementById('m-'+id+'-value');
     const comEl = document.getElementById('m-'+id+'-comment');
@@ -860,9 +906,14 @@ function renderMetrics() {
 
   // Render trend + history from saved check-ins
   const history = (d.history || []).filter(h => h.metrics);
-  ['sct','ect','wip'].forEach(id => {
+  ['sct','ect','wip','fh'].forEach(id => {
     renderMetricTrend(id, history);
     renderMetricHistory(id, history);
+  });
+  // Restore goals
+  ['ect','wip','fh'].forEach(id => {
+    const goalEl = document.getElementById('m-'+id+'-goal');
+    if (goalEl && m[id]?.goal) goalEl.value = m[id].goal;
   });
 }
 
@@ -916,6 +967,17 @@ function saveMetric(id, field, value) {
   setData(d);
   const history = (d.history||[]).filter(h=>h.metrics);
   renderMetricTrend(id, history);
+}
+
+function saveMetricGoal(id, value) {
+  const d = getData();
+  if (!d.metrics)     d.metrics = {};
+  if (!d.metrics[id]) d.metrics[id] = {};
+  d.metrics[id].goal = value;
+  setData(d);
+  // Show "Saved" confirmation briefly
+  const el = document.getElementById('m-'+id+'-goal-saved');
+  if (el) { el.style.display='inline'; setTimeout(()=>el.style.display='none', 1500); }
 }
 
 function saveMetrics() {
