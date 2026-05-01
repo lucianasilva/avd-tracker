@@ -520,8 +520,8 @@ const ACTIONS = [
       {text:'PM/PO define Value Goal for the first pilot iteration',owner:'PM/PO',done:'"By end of this iteration, [user] can [action]. Success = [metric]"'},
       {text:'PM/PO align all stories to the goal — off-goal stories deferred',owner:'PM/PO',done:'All stories have label or comment linking them to the goal'}
     ]},
-    {week:'Week 2 (end of 1st iteration)',commits:[
-      {text:'PO validates whether goal was achieved — independent of ticket count',owner:'PM/PO',done:'"Goal achieved: yes/no. Evidence: [link or description]"'},
+    {week:'Week 2',commits:[
+      {text:'PO validates whether goal was achieved — independent of ticket count',owner:'PM/PO',done:'"Goal achieved: yes/no. Evidence: [link or description]"',note:'End of 1st iteration'},
       {text:'If goal NOT achieved: EPM runs Goal Miss Protocol',owner:'EPM',done:'(1) What blocked it? (2) Is the goal still valid? (3) What changes next iteration?'}
     ]}
   ]},
@@ -722,7 +722,9 @@ function renderRoadmap() {
         return `<div class="commit">
           <input type="checkbox" ${chk?'checked':''} onchange="saveCommit('${a.id}',${mi},${ci},this.checked)"/>
           <div>
-            <div class="commit-text${chk?' checked':''}">${c.text}</div>
+            <div class="commit-text${chk?' checked':''}">
+              ${c.note?`<span style="font-size:10px;font-weight:500;color:var(--text3);background:var(--bg2);border:0.5px solid var(--border);border-radius:3px;padding:1px 6px;margin-right:6px">${c.note}</span>`:''}${c.text}
+            </div>
             <div class="done-criteria">Done when: ${c.done}</div>
           </div>
           <span class="owner-pill" style="background:${oc.bg};color:${oc.color}">${c.owner}</span>
