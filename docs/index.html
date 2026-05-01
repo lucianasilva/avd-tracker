@@ -330,7 +330,14 @@
 
   <!-- FLOW METRICS -->
   <div class="view" id="view-metrics">
-    <div style="font-size:13px;color:var(--text2);margin-bottom:16px">Track your team's key flow metrics every bi-weekly check-in. The dashboard will show trends over time.</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:12px">Track your team's key flow metrics every bi-weekly check-in. The dashboard will show trends over time.</div>
+    <div class="section-gap">
+      <div class="checkin-title">Metrics date</div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <input type="date" id="metrics-date" style="font-size:13px;padding:6px 10px;border:0.5px solid var(--border);border-radius:var(--radius);background:var(--bg);color:var(--text)" oninput="saveMetricsDate(this.value)"/>
+        <span style="font-size:12px;color:var(--text3)">Date of this flow metrics update</span>
+      </div>
+    </div>
 
     <!-- Story Cycle Time -->
     <div class="metric-block">
@@ -396,12 +403,11 @@
       </div>
       <div class="metric-inputs">
         <div class="metric-value-wrap">
-          <span class="metric-value-label">Active Epics</span>
-          <input type="number" class="metric-value-input" id="m-wip-value" placeholder="—" min="0" oninput="saveMetric('wip','value',this.value)"/>
-          <span class="metric-unit">epics</span>
+          <span class="metric-value-label">WIP Limit Goal</span>
+          <input type="number" class="metric-value-input" id="m-wip-limit" placeholder="—" min="0" oninput="saveMetric('wip','limit',this.value)"/>
           <div style="margin-top:8px">
-            <div class="metric-value-label" style="margin-bottom:4px">WIP Limit</div>
-            <input type="number" class="metric-value-input" id="m-wip-limit" placeholder="—" min="0" style="font-size:14px" oninput="saveMetric('wip','limit',this.value)"/>
+            <div class="metric-value-label" style="margin-bottom:4px">Active Epics</div>
+            <input type="number" class="metric-value-input" id="m-wip-value" placeholder="—" min="0" style="font-size:14px" oninput="saveMetric('wip','value',this.value)"/>
           </div>
           <div id="m-wip-trend" style="margin-top:6px;text-align:center"></div>
         </div>
@@ -1160,6 +1166,12 @@ function renderMetrics() {
     renderMetricTrend(id, history);
     renderMetricHistory(id, history);
   });
+  // Restore metrics date
+  const metricsDateEl = document.getElementById('metrics-date');
+  if (metricsDateEl) {
+    metricsDateEl.value = m.metricsDate || new Date().toISOString().slice(0,10);
+  }
+
   // Restore goals
   ['ect','fh'].forEach(id => {
     const goalEl = document.getElementById('m-'+id+'-goal');
@@ -1219,6 +1231,13 @@ function saveMetric(id, field, value) {
   renderMetricTrend(id, history);
 }
 
+function saveMetricsDate(val) {
+  const d = getData();
+  if (!d.metrics) d.metrics = {};
+  d.metrics.metricsDate = val;
+  setData(d);
+}
+
 function saveMetricGoal(id, value) {
   const d = getData();
   if (!d.metrics)     d.metrics = {};
@@ -1234,18 +1253,19 @@ function saveMetrics() {
   const d = getData();
   // Save a metrics snapshot into history (creates or updates entry for today)
   if (!d.history) d.history = [];
-  const today = new Date().toISOString().slice(0,10);
-  let entry = d.history.find(h => h.date && h.date.slice(0,10) === today);
+  const metricsDate = d.metrics?.metricsDate || new Date().toISOString().slice(0,10);
+  let entry = d.history.find(h => h.date && h.date.slice(0,10) === metricsDate);
   if (!entry) {
-    // Create a lightweight entry just for metrics
     const total = ACTIONS.reduce((s,a)=>s+a.milestones.reduce((ss,m)=>ss+m.commits.length,0),0);
     const done  = ACTIONS.reduce((s,a)=>s+a.milestones.reduce((ss,m,mi)=>ss+m.commits.filter((_,ci)=>(d.checks?.commits||{})[ck(a.id,mi,ci)]).length,0),0);
-    entry = { date: new Date().toISOString(), scores: {...(d.checks?.scores||{})},
+    entry = { date: new Date(metricsDate).toISOString(), scores: {...(d.checks?.scores||{})},
       notes: {...(d.checks?.scoreNotes||{})}, progress: total?Math.round(done/total*100):0,
       metrics: {} };
     d.history.unshift(entry);
   }
   entry.metrics = { ...(d.metrics||{}) };
+  // Reset date to today for next entry
+  if (d.metrics) d.metrics.metricsDate = new Date().toISOString().slice(0,10);
   setData(d);
   renderMetrics();
   flash('metrics-msg');
