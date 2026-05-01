@@ -305,21 +305,24 @@
   <div class="view" id="view-admin">
     <div class="sync-bar">
       <button class="btn-primary" onclick="loadDashboard()">Refresh dashboard</button>
+      <select id="team-filter" class="score-sel" style="min-width:180px;font-size:13px" onchange="filterDashboard(this.value)">
+        <option value="all">All teams</option>
+      </select>
       <span id="sync-spinner" style="display:none"><span class="loading-spinner"></span></span>
       <span class="sync-time" id="sync-time"></span>
     </div>
 
-    <div style="font-size:13px;font-weight:500;margin-bottom:12px">All teams — latest check-in</div>
+    <div style="font-size:13px;font-weight:500;margin-bottom:12px">Latest check-in</div>
     <div id="dash-grid" class="dash-grid">
       <div class="dash-empty">Click "Refresh dashboard" to load data from all teams.</div>
     </div>
 
-    <div style="font-size:13px;font-weight:500;margin-bottom:12px;margin-top:8px">Adoption score history — all teams</div>
+    <div style="font-size:13px;font-weight:500;margin-bottom:12px;margin-top:20px">Adoption score history</div>
     <div class="card" id="dash-trend">
       <div class="no-data">No history data yet.</div>
     </div>
 
-    <div style="font-size:13px;font-weight:500;margin-bottom:12px;margin-top:20px">Flow metrics evolution — all teams</div>
+    <div style="font-size:13px;font-weight:500;margin-bottom:12px;margin-top:20px">Flow metrics evolution</div>
     <div class="card" id="dash-metrics">
       <div class="no-data">No metrics data yet.</div>
     </div>
@@ -390,11 +393,6 @@
           <div style="font-size:11px;color:var(--text3);margin-top:2px">A2 · Current number of Epics in progress vs. defined limit</div>
         </div>
         <span class="metric-target">Target: at or below WIP limit at all times</span>
-      </div>
-      <div class="goal-field-wrap">
-        <span class="goal-field-label">Team WIP limit:</span>
-        <input class="goal-field-input" id="m-wip-goal" placeholder="e.g. Max 12 active Epics across all stages" oninput="saveMetricGoal('wip',this.value)"/>
-        <span class="goal-saved" id="m-wip-goal-saved" style="display:none">Saved</span>
       </div>
       <div class="metric-inputs">
         <div class="metric-value-wrap">
@@ -903,18 +901,54 @@ function genCoaching() {
 
 /* ══ HISTORY ══ */
 function renderHistory() {
-  const h=getData().history||[],el=document.getElementById('history-list');
-  if(!h.length){el.innerHTML='<div style="font-size:13px;color:var(--text3)">No check-ins saved yet.</div>';return;}
-  const bgs=['#F1EFE8','#FCEBEB','#FAEEDA','#E6F1FB','#EAF3DE','#EEEDFE'];
-  const cols=['#888780','#A32D2D','#854F0B','#185FA5','#3B6D11','#3C3489'];
-  el.innerHTML=h.map(entry=>{
-    const dt=new Date(entry.date).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
-    const scoreHtml=ACTIONS.map(a=>{const sv=parseInt(entry.scores?.[a.id]||0);return`<span class="owner-pill" style="background:${bgs[sv]};color:${cols[sv]}">${a.code} ${sv||'—'}</span>`;}).join('');
-    const noteHtml=ACTIONS.filter(a=>entry.notes?.[a.id]?.trim()).map(a=>`<span style="color:var(--text3)">${a.code}:</span> ${entry.notes[a.id]}`).join(' · ');
-    return`<div class="history-item">
-      <div class="history-date">${dt} · Progress: ${entry.progress}%</div>
-      <div class="history-scores" style="margin-bottom:${noteHtml?'8px':'0'}">${scoreHtml}</div>
-      ${noteHtml?`<div style="font-size:11px;color:var(--text2);line-height:1.5">${noteHtml}</div>`:''}
+  const h=getData().history||[], el=document.getElementById('history-list');
+  if (!h.length) { el.innerHTML='<div style="font-size:13px;color:var(--text3)">No check-ins saved yet.</div>'; return; }
+  const bgs  = ['#F1EFE8','#FCEBEB','#FAEEDA','#E6F1FB','#EAF3DE','#EEEDFE'];
+  const cols = ['#888780','#A32D2D','#854F0B','#185FA5','#3B6D11','#3C3489'];
+  const METRIC_LABELS = { sct:'Story Cycle Time', ect:'Epic Full Cycle Time', fh:'Flow Handoff', wip:'WIP Active Epics' };
+  const METRIC_UNITS  = { sct:'days', ect:'days', fh:'days', wip:'epics' };
+
+  el.innerHTML = h.map(entry => {
+    const dt = new Date(entry.date).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+
+    // Adoption scores row
+    const scoreRows = ACTIONS.map(a => {
+      const sv  = parseInt(entry.scores?.[a.id]||0);
+      const note = entry.notes?.[a.id]?.trim();
+      if (!sv && !note) return '';
+      return `<div style="display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-bottom:0.5px solid var(--border)">
+        <span class="owner-pill" style="background:${bgs[sv]};color:${cols[sv]};flex-shrink:0;margin-top:1px">${a.code} ${sv||'—'}</span>
+        <div>
+          <div style="font-size:11px;font-weight:500;color:var(--text2)">${a.label}</div>
+          ${note ? `<div style="font-size:11px;color:var(--text2);margin-top:2px;line-height:1.5">${note}</div>` : ''}
+        </div>
+      </div>`;
+    }).filter(Boolean).join('');
+
+    // Flow metrics section
+    const metricRows = entry.metrics ? Object.entries(entry.metrics).map(([id, m]) => {
+      if (!m?.value && m?.value !== 0) return '';
+      const label = METRIC_LABELS[id] || id;
+      const unit  = METRIC_UNITS[id]  || '';
+      const comment = m.comment?.trim();
+      const action  = m.action?.trim();
+      return `<div style="display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-bottom:0.5px solid var(--border)">
+        <span style="font-size:10px;font-weight:500;background:var(--bg2);border:0.5px solid var(--border);border-radius:3px;padding:2px 7px;white-space:nowrap;flex-shrink:0;margin-top:1px;color:var(--text2)">${m.value} ${unit}</span>
+        <div>
+          <div style="font-size:11px;font-weight:500;color:var(--text2)">${label}</div>
+          ${comment ? `<div style="font-size:11px;color:var(--text2);margin-top:2px;line-height:1.5">${comment}</div>` : ''}
+          ${action  ? `<div style="font-size:11px;color:var(--text3);margin-top:2px;line-height:1.5">↳ ${action}</div>` : ''}
+        </div>
+      </div>`;
+    }).filter(Boolean).join('') : '';
+
+    return `<div class="history-item">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="font-size:12px;font-weight:500">${dt}</div>
+        <div style="font-size:11px;color:var(--text3)">Progress: ${entry.progress}%</div>
+      </div>
+      ${scoreRows ? `<div style="margin-bottom:${metricRows?'10px':'0'}">${scoreRows}</div>` : ''}
+      ${metricRows ? `<div style="margin-top:6px"><div style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:4px">Flow Metrics</div>${metricRows}</div>` : ''}
     </div>`;
   }).join('');
 }
@@ -955,7 +989,16 @@ async function loadDashboard() {
     });
   } catch(e) {}
 
-  renderDashboard({ checkins: allCheckins });
+  _allDashData = { checkins: allCheckins };
+
+  // Populate team dropdown
+  const teams = [...new Set(allCheckins.map(c => c.team))].sort();
+  const sel = document.getElementById('team-filter');
+  const current = sel.value;
+  sel.innerHTML = '<option value="all">All teams</option>' +
+    teams.map(t => `<option value="${t}" ${t===current?'selected':''}>${t}</option>`).join('');
+
+  filterDashboard(sel.value);
   document.getElementById('sync-time').textContent = 'Last updated: ' + new Date().toLocaleTimeString();
   document.getElementById('sync-spinner').style.display = 'none';
 }
@@ -1118,7 +1161,7 @@ function renderMetrics() {
     renderMetricHistory(id, history);
   });
   // Restore goals
-  ['ect','wip','fh'].forEach(id => {
+  ['ect','fh'].forEach(id => {
     const goalEl = document.getElementById('m-'+id+'-goal');
     if (goalEl && m[id]?.goal) goalEl.value = m[id].goal;
   });
@@ -1188,9 +1231,35 @@ function saveMetricGoal(id, value) {
 }
 
 function saveMetrics() {
-  // Metrics are auto-saved on input — this just confirms and re-renders
+  const d = getData();
+  // Save a metrics snapshot into history (creates or updates entry for today)
+  if (!d.history) d.history = [];
+  const today = new Date().toISOString().slice(0,10);
+  let entry = d.history.find(h => h.date && h.date.slice(0,10) === today);
+  if (!entry) {
+    // Create a lightweight entry just for metrics
+    const total = ACTIONS.reduce((s,a)=>s+a.milestones.reduce((ss,m)=>ss+m.commits.length,0),0);
+    const done  = ACTIONS.reduce((s,a)=>s+a.milestones.reduce((ss,m,mi)=>ss+m.commits.filter((_,ci)=>(d.checks?.commits||{})[ck(a.id,mi,ci)]).length,0),0);
+    entry = { date: new Date().toISOString(), scores: {...(d.checks?.scores||{})},
+      notes: {...(d.checks?.scoreNotes||{})}, progress: total?Math.round(done/total*100):0,
+      metrics: {} };
+    d.history.unshift(entry);
+  }
+  entry.metrics = { ...(d.metrics||{}) };
+  setData(d);
   renderMetrics();
   flash('metrics-msg');
+}
+
+/* ══ DASHBOARD FILTER ══ */
+let _allDashData = { checkins: [] };
+
+function filterDashboard(team) {
+  if (team === 'all') {
+    renderDashboard(_allDashData);
+  } else {
+    renderDashboard({ checkins: _allDashData.checkins.filter(c => c.team === team) });
+  }
 }
 
 /* ══ INIT ══ */
