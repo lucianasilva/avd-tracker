@@ -99,7 +99,7 @@
   .commit-text.checked{text-decoration:line-through;color:var(--text3)}
   .done-criteria{font-size:11px;color:var(--text3);line-height:1.4;margin-top:4px;padding:4px 8px;border-left:2px solid var(--border2)}
   .owner-pill{font-size:10px;font-weight:500;padding:2px 7px;border-radius:3px;white-space:nowrap;text-align:center;align-self:start;margin-top:2px}
-  .gate-warn{display:flex;align-items:center;gap:6px;font-size:12px;padding:6px 10px;background:var(--warn-bg);color:var(--warn-text);border-radius:var(--radius);margin-bottom:10px;border:0.5px solid var(--warn-border)}
+
   .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
   .stat-card{background:var(--bg2);border-radius:var(--radius);padding:12px 16px}
   .stat-label{font-size:11px;color:var(--text3);margin-bottom:2px}
@@ -253,7 +253,7 @@
 
   <!-- ROADMAP -->
   <div class="view" id="view-roadmap">
-    <div id="roadmap-banner" style="font-size:12px;color:var(--text2);margin-bottom:12px"></div>
+
     <div id="roadmap-content"></div>
     <div class="save-bar">
       <button class="btn-primary" onclick="saveRoadmap()">Save progress</button>
@@ -525,13 +525,13 @@ const ACTIONS = [
       {text:'If goal NOT achieved: EPM runs Goal Miss Protocol',owner:'EPM',done:'(1) What blocked it? (2) Is the goal still valid? (3) What changes next iteration?'}
     ]}
   ]},
-  {id:'a7',code:'A7',label:'Outcome Metrics',tagline:'Gate: requires A6 score ≥ 3 before starting',color:'#993C1D',textColor:'#FAECE7',gate:true,
+  {id:'a7',code:'A7',label:'Outcome Metrics',tagline:'Transition from output to outcome metrics',color:'#993C1D',textColor:'#FAECE7',
    milestones:[
-    {week:'Week 1 (after A6 gate)',commits:[
+    {week:'Week 1',commits:[
       {text:'PM shares value context with team: real use cases, customer impact',owner:'PM/PO',done:'Team can articulate "why does this matter to the customer?" without docs'},
       {text:'EPM shifts bi-weekly reporting to Value Outcome',owner:'EPM',done:'Next report does not mention ticket count. Mentions user impact'}
     ]},
-    {week:'Month 1 (after A6 gate)',commits:[
+    {week:'Month 1',commits:[
       {text:'EPM begins tracking Epic Full Cycle Time and documents baseline',owner:'EPM',done:'Epic Full CT Action Plan created. 50% reduction target documented'},
       {text:'First Epic Value Demo completed',owner:'EPM',done:'Demo recorded or documented. No Epic marked Done without demo'}
     ]}
@@ -671,8 +671,7 @@ function isDueSoon(dv,done){if(!dv||done)return false;const d=(new Date(dv)-new 
 
 function renderRoadmap() {
   const d=getData(), s=d.setup||{}, commits=d.checks?.commits||{}, dates=d.checks?.dates||{}, open=d.checks?.open||{};
-  const ko=s.kickoff?new Date(s.kickoff).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'—';
-  document.getElementById('roadmap-banner').innerHTML=`<strong>${s.team||'—'}</strong> &nbsp;·&nbsp; EPM: ${s.epm||'—'} &nbsp;·&nbsp; TL: ${s.tl||'—'} &nbsp;·&nbsp; Kick-off: ${ko}`;
+
 
   // Build week-first structure
   const weekMap = {};
@@ -688,7 +687,7 @@ function renderRoadmap() {
   const doneAll  = ACTIONS.reduce((s,a)=>s+a.milestones.reduce((ss,m,mi)=>ss+m.commits.filter((_,ci)=>commits[ck(a.id,mi,ci)]).length,0),0);
   const pctAll   = totalAll ? Math.round(doneAll/totalAll*100) : 0;
 
-  const weekOrder = ['Week 1','Week 2','Month 1','Week 1 (after A6 gate)','Month 1 (after A6 gate)'];
+  const weekOrder = ['Week 1','Week 2','Month 1'];
   const sortedWeeks = Object.keys(weekMap).sort((a,b)=>{
     const ia = weekOrder.indexOf(a), ib = weekOrder.indexOf(b);
     return (ia===-1?99:ia) - (ib===-1?99:ib);
@@ -717,7 +716,7 @@ function renderRoadmap() {
 
     const commitRows = entries.map(({a, m, mi}) => {
       // Gate warning for A7
-      const gateHtml = a.gate ? `<div class="gate-warn" style="margin:6px 0 4px">&#9888; Gate: requires A6 score &#8805; 3 before starting</div>` : '';
+      const gateHtml = '';
       const actionCommits = m.commits.map((c,ci)=>{
         const key=ck(a.id,mi,ci), chk=commits[key], oc=OWNER_COLORS[c.owner]||OWNER_COLORS['All'];
         return `<div class="commit">
@@ -729,7 +728,7 @@ function renderRoadmap() {
           <span class="owner-pill" style="background:${oc.bg};color:${oc.color}">${c.owner}</span>
         </div>`;
       }).join('');
-      return `${gateHtml}
+      return `
         <div style="margin-bottom:10px">
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;padding:4px 0;border-bottom:0.5px solid var(--border)">
             <span class="ac-badge" style="background:${a.color};color:${a.textColor};font-size:10px">${a.code}</span>
