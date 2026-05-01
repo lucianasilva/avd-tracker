@@ -144,6 +144,32 @@
   .trend-team{font-weight:500;width:120px;flex-shrink:0}
   .trend-scores{display:flex;gap:3px}
   .no-data{font-size:12px;color:var(--text3);font-style:italic}
+
+  /* Flow Metrics */
+  .metric-block{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:16px 20px;margin-bottom:12px}
+  .metric-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+  .metric-title{font-size:14px;font-weight:500}
+  .metric-target{font-size:11px;color:var(--text3);background:var(--bg2);padding:3px 10px;border-radius:20px}
+  .metric-inputs{display:grid;grid-template-columns:140px 1fr;gap:12px;align-items:start}
+  .metric-value-wrap{display:flex;flex-direction:column;gap:6px}
+  .metric-value-label{font-size:11px;color:var(--text2);font-weight:500}
+  .metric-value-input{width:100%;font-size:18px;font-weight:500;padding:8px 12px;border:0.5px solid var(--border);border-radius:var(--radius);background:var(--bg);color:var(--text);text-align:center}
+  .metric-value-input:focus{border-color:var(--border2)}
+  .metric-unit{font-size:11px;color:var(--text3);text-align:center;margin-top:2px}
+  .metric-right{display:flex;flex-direction:column;gap:8px}
+  .metric-textarea{width:100%;min-height:52px;font-size:12px}
+  .trend-indicator{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500;padding:3px 10px;border-radius:20px}
+  .trend-up-bad{background:#FCEBEB;color:#A32D2D}
+  .trend-down-good{background:#EAF3DE;color:#27500A}
+  .trend-stable{background:#FAEEDA;color:#633806}
+  .trend-new{background:var(--bg2);color:var(--text3)}
+  .metric-history{margin-top:10px;padding-top:10px;border-top:0.5px solid var(--border)}
+  .metric-history-title{font-size:11px;font-weight:500;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em}
+  .metric-history-row{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text2);padding:3px 0}
+  .metric-chart{display:flex;align-items:flex-end;gap:3px;height:40px;margin-top:6px}
+  .metric-bar{background:var(--info-bg);border:0.5px solid var(--info-border);border-radius:2px 2px 0 0;min-width:18px;position:relative;transition:height .3s}
+  .metric-bar-label{font-size:9px;color:var(--text3);text-align:center;margin-top:2px}
+
 </style>
 </head>
 <body>
@@ -187,6 +213,7 @@
     <button class="nav-btn" onclick="showView('roadmap',this)">Implementation Roadmap</button>
     <button class="nav-btn" onclick="showView('checkin',this)">Bi-weekly Check-in</button>
     <button class="nav-btn" onclick="showView('history',this)">History</button>
+    <button class="nav-btn" onclick="showView('metrics',this)">Flow Metrics</button>
     <button class="nav-btn admin-tab" id="admin-tab" style="display:none" onclick="showView('admin',this)">📊 Admin Dashboard</button>
   </div>
 
@@ -280,6 +307,93 @@
       <div class="no-data">No history data yet.</div>
     </div>
   </div>
+
+  <!-- FLOW METRICS -->
+  <div class="view" id="view-metrics">
+    <div style="font-size:13px;color:var(--text2);margin-bottom:16px">Track your team's key flow metrics every bi-weekly check-in. The dashboard will show trends over time.</div>
+
+    <!-- Story Cycle Time -->
+    <div class="metric-block">
+      <div class="metric-header">
+        <div>
+          <div class="metric-title">Story Cycle Time <span style="font-size:11px;font-weight:400;color:var(--text3)">(85th percentile)</span></div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px">A5 · Time from "In Development" to "Closed"</div>
+        </div>
+        <span class="metric-target">Target: ≤ 15 days by end of 2026</span>
+      </div>
+      <div class="metric-inputs">
+        <div class="metric-value-wrap">
+          <span class="metric-value-label">Current value</span>
+          <input type="number" class="metric-value-input" id="m-sct-value" placeholder="—" min="0" oninput="saveMetric('sct','value',this.value)"/>
+          <span class="metric-unit">days</span>
+          <div id="m-sct-trend" style="margin-top:6px;text-align:center"></div>
+        </div>
+        <div class="metric-right">
+          <textarea class="metric-textarea" id="m-sct-comment" placeholder="What is driving this number? Any outliers?" oninput="saveMetric('sct','comment',this.value)"></textarea>
+          <textarea class="metric-textarea" id="m-sct-action" placeholder="Action item: what will we do to improve?" oninput="saveMetric('sct','action',this.value)"></textarea>
+        </div>
+      </div>
+      <div class="metric-history" id="m-sct-history"></div>
+    </div>
+
+    <!-- Epic Full Cycle Time -->
+    <div class="metric-block">
+      <div class="metric-header">
+        <div>
+          <div class="metric-title">Epic Full Cycle Time <span style="font-size:11px;font-weight:400;color:var(--text3)">(85th percentile)</span></div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px">A7 · Time from Epic creation to "Closed"</div>
+        </div>
+        <span class="metric-target">Target: reduce by 50% by end of 2026</span>
+      </div>
+      <div class="metric-inputs">
+        <div class="metric-value-wrap">
+          <span class="metric-value-label">Current value</span>
+          <input type="number" class="metric-value-input" id="m-ect-value" placeholder="—" min="0" oninput="saveMetric('ect','value',this.value)"/>
+          <span class="metric-unit">days</span>
+          <div id="m-ect-trend" style="margin-top:6px;text-align:center"></div>
+        </div>
+        <div class="metric-right">
+          <textarea class="metric-textarea" id="m-ect-comment" placeholder="What is driving this number? Any blockers?" oninput="saveMetric('ect','comment',this.value)"></textarea>
+          <textarea class="metric-textarea" id="m-ect-action" placeholder="Action item: what will we do to improve?" oninput="saveMetric('ect','action',this.value)"></textarea>
+        </div>
+      </div>
+      <div class="metric-history" id="m-ect-history"></div>
+    </div>
+
+    <!-- WIP Limit -->
+    <div class="metric-block">
+      <div class="metric-header">
+        <div>
+          <div class="metric-title">WIP — Active Epics</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px">A2 · Current number of Epics in progress vs. defined limit</div>
+        </div>
+        <span class="metric-target">Target: at or below WIP limit at all times</span>
+      </div>
+      <div class="metric-inputs">
+        <div class="metric-value-wrap">
+          <span class="metric-value-label">Active Epics</span>
+          <input type="number" class="metric-value-input" id="m-wip-value" placeholder="—" min="0" oninput="saveMetric('wip','value',this.value)"/>
+          <span class="metric-unit">epics</span>
+          <div style="margin-top:8px">
+            <div class="metric-value-label" style="margin-bottom:4px">WIP Limit</div>
+            <input type="number" class="metric-value-input" id="m-wip-limit" placeholder="—" min="0" style="font-size:14px" oninput="saveMetric('wip','limit',this.value)"/>
+          </div>
+          <div id="m-wip-trend" style="margin-top:6px;text-align:center"></div>
+        </div>
+        <div class="metric-right">
+          <textarea class="metric-textarea" id="m-wip-comment" placeholder="Any WIP violations this iteration? What caused them?" oninput="saveMetric('wip','comment',this.value)"></textarea>
+          <textarea class="metric-textarea" id="m-wip-action" placeholder="Action item: how will we protect the WIP limit?" oninput="saveMetric('wip','action',this.value)"></textarea>
+        </div>
+      </div>
+      <div class="metric-history" id="m-wip-history"></div>
+    </div>
+
+    <div class="save-bar">
+      <button class="btn-primary" onclick="saveMetrics()">Save flow metrics</button>
+      <span id="metrics-msg" class="save-msg" style="display:none">Saved.</span>
+    </div>
+  </div>
+
 </div>
 </div>
 
@@ -290,11 +404,7 @@ const GATEKEEPER_URL    = 'https://avd-tracker-gatekeeper.onrender.com';
 const SHEETS_API_URL    = 'https://script.google.com/a/macros/liferay.com/s/AKfycbynuaHLDWjLXCTAZId2oQhl452s94Z-z79XzQ0aKLkx0JF2ZggzCylw3OxoH8uN5tOl/exec';
 const ADMIN_USERS       = ['lucianasilva'];
 const ALLOWED_USERS     = [
- 'lucianasilva',
-  'samuelromeiro',
-  'mariana-huggins',
-  'natalia-lacerda-cunha',
-  'henriquebrasileiro',
+  'lucianasilva',
   // add EPM and TL GitHub usernames here
 ];
 
@@ -473,6 +583,7 @@ function showView(v, btn) {
   if(v==='history') renderHistory();
   if(v==='roadmap') renderRoadmap();
   if(v==='admin')   loadDashboard();
+  if(v==='metrics')  renderMetrics();
 }
 
 /* ══ SETUP ══ */
@@ -613,7 +724,7 @@ async function saveCheckin() {
   if(!d.history) d.history=[];
   const total=ACTIONS.reduce((s,a)=>s+a.milestones.reduce((ss,m)=>ss+m.commits.length,0),0);
   const done=ACTIONS.reduce((s,a)=>s+a.milestones.reduce((ss,m,mi)=>ss+m.commits.filter((_,ci)=>(d.checks?.commits||{})[ck(a.id,mi,ci)]).length,0),0);
-  const entry={date:new Date().toISOString(),scores:{...(d.checks?.scores||{})},notes:{...(d.checks?.scoreNotes||{})},progress:total?Math.round(done/total*100):0};
+  const entry={date:new Date().toISOString(),scores:{...(d.checks?.scores||{})},notes:{...(d.checks?.scoreNotes||{})},progress:total?Math.round(done/total*100):0,metrics:{...(d.metrics||{})}};
   d.history.unshift(entry);
   setData(d);
   // Sync to Google Sheets
@@ -718,6 +829,99 @@ function renderDashboard(data) {
     }).join('');
     return`<div class="trend-row"><span class="trend-team">${team}</span><div class="trend-scores">${chips}</div></div>`;
   }).join('');
+}
+
+
+/* ══ FLOW METRICS ══ */
+const METRICS = [
+  { id:'sct', higherIsBad:true  },
+  { id:'ect', higherIsBad:true  },
+  { id:'wip', higherIsBad:true  },
+];
+
+function renderMetrics() {
+  const d = getData();
+  const m = d.metrics || {};
+
+  // Restore current values
+  ['sct','ect','wip'].forEach(id => {
+    const cur = m[id] || {};
+    const valEl = document.getElementById('m-'+id+'-value');
+    const comEl = document.getElementById('m-'+id+'-comment');
+    const actEl = document.getElementById('m-'+id+'-action');
+    if (valEl && cur.value !== undefined) valEl.value = cur.value;
+    if (comEl && cur.comment) comEl.value = cur.comment;
+    if (actEl && cur.action)  actEl.value = cur.action;
+    if (id === 'wip') {
+      const limEl = document.getElementById('m-wip-limit');
+      if (limEl && cur.limit !== undefined) limEl.value = cur.limit;
+    }
+  });
+
+  // Render trend + history from saved check-ins
+  const history = (d.history || []).filter(h => h.metrics);
+  ['sct','ect','wip'].forEach(id => {
+    renderMetricTrend(id, history);
+    renderMetricHistory(id, history);
+  });
+}
+
+function renderMetricTrend(id, history) {
+  const el = document.getElementById('m-'+id+'-trend');
+  if (!el) return;
+  const vals = history.map(h => parseFloat(h.metrics?.[id]?.value)).filter(v => !isNaN(v));
+  if (vals.length < 2) { el.innerHTML = '<span class="trend-indicator trend-new">No trend yet</span>'; return; }
+  const last = vals[0], prev = vals[1];
+  const diff = last - prev;
+  const pct  = prev ? Math.abs(Math.round(diff/prev*100)) : 0;
+  let cls, arrow, label;
+  if (Math.abs(diff) < 0.5) { cls='trend-stable'; arrow='→'; label='Stable'; }
+  else if (diff > 0) { cls='trend-up-bad';    arrow='↑'; label=`+${pct}% vs last`; }
+  else               { cls='trend-down-good'; arrow='↓'; label=`-${pct}% vs last`; }
+  if (id === 'wip') {
+    const d = getData(); const limit = parseFloat(d.metrics?.wip?.limit||0);
+    if (limit && last > limit) { cls='trend-up-bad'; arrow='⚠'; label=`${last} / limit ${limit}`; }
+    else if (limit)             { cls='trend-down-good'; arrow='✓'; label=`${last} / limit ${limit}`; }
+  }
+  el.innerHTML = `<span class="trend-indicator ${cls}">${arrow} ${label}</span>`;
+}
+
+function renderMetricHistory(id, history) {
+  const el = document.getElementById('m-'+id+'-history');
+  if (!el) return;
+  const entries = history.filter(h => h.metrics?.[id]?.value !== undefined).slice(0,6);
+  if (!entries.length) { el.innerHTML=''; return; }
+  const vals = entries.map(h => parseFloat(h.metrics[id].value));
+  const max  = Math.max(...vals, 1);
+  const bars = entries.map((h,i) => {
+    const v   = vals[i];
+    const ht  = Math.max(4, Math.round(v/max*36));
+    const dt  = new Date(h.date).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    return `<div style="display:flex;flex-direction:column;align-items:center">
+      <div style="font-size:9px;color:var(--text3);margin-bottom:2px">${v}</div>
+      <div class="metric-bar" style="height:${ht}px" title="${dt}: ${v}"></div>
+      <div class="metric-bar-label">${dt}</div>
+    </div>`;
+  }).reverse().join('');
+  el.innerHTML = `
+    <div class="metric-history-title">Last ${entries.length} check-ins</div>
+    <div class="metric-chart">${bars}</div>`;
+}
+
+function saveMetric(id, field, value) {
+  const d = getData();
+  if (!d.metrics)     d.metrics = {};
+  if (!d.metrics[id]) d.metrics[id] = {};
+  d.metrics[id][field] = value;
+  setData(d);
+  const history = (d.history||[]).filter(h=>h.metrics);
+  renderMetricTrend(id, history);
+}
+
+function saveMetrics() {
+  // Metrics are auto-saved on input — this just confirms and re-renders
+  renderMetrics();
+  flash('metrics-msg');
 }
 
 /* ══ INIT ══ */
