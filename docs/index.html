@@ -246,9 +246,7 @@
         <span id="setup-msg" class="save-msg" style="display:none">Saved.</span>
       </div>
     </div>
-    <div class="info-box">
-      <strong>Data sync:</strong> Check-in scores and progress are automatically sent to the program manager's dashboard when you save. Your local data is also kept in this browser.
-    </div>
+
   </div>
 
   <!-- ROADMAP -->
@@ -925,31 +923,45 @@ function renderHistory() {
 async function loadDashboard() {
   document.getElementById('sync-spinner').style.display='inline';
   document.getElementById('sync-time').textContent='Loading...';
-  try {
-    const res  = await fetch(GATEKEEPER_URL + '/sheets');
-    const data = await res.json();
-    renderDashboard(data);
-    document.getElementById('sync-time').textContent='Last updated: '+new Date().toLocaleTimeString();
-  } catch(e) {
-    document.getElementById('sync-time').textContent='Failed to load. Check Sheets API.';
+
+  // Collect all team data from localStorage
+  const allCheckins = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key.startsWith('avd-data-')) {
+      try {
+        const d = JSON.parse(localStorage.getItem(key) || '{}');
+        const team = d.setup?.team;
+        if (team && d.history?.length) {
+          d.history.forEach(h => {
+            allCheckins.push({
+              team, date: h.date, progress: h.progress,
+              scores: h.scores || {}, notes: h.notes || {},
+              metrics: h.metrics || {}
+            });
+          });
+        }
+      } catch(e) {}
+    }
   }
-  document.getElementById('sync-spinner').style.display='none';
+
+  // Also try Sheets via Gatekeeper (silently fails if unavailable)
+  try {
+    const res = await fetch(GATEKEEPER_URL + '/sheets');
+    const data = await res.json();
+    (data.checkins || []).forEach(c => {
+      if (!allCheckins.find(x => x.team === c.team && x.date === c.date))
+        allCheckins.push(c);
+    });
+  } catch(e) {}
+
+  renderDashboard({ checkins: allCheckins });
+  document.getElementById('sync-time').textContent = 'Last updated: ' + new Date().toLocaleTimeString();
+  document.getElementById('sync-spinner').style.display = 'none';
 }
 
 function renderDashboard(data) {
   const checkins = data.checkins || [];
-
-  // Also pull from localStorage for local teams
-  const localTeam = getData().setup?.team;
-  const localHistory = getData().history || [];
-  if (localTeam && localHistory.length) {
-    localHistory.forEach(h => {
-      if (!checkins.find(c => c.team === localTeam && c.date === h.date)) {
-        checkins.push({ team: localTeam, date: h.date, progress: h.progress,
-          scores: h.scores || {}, notes: h.notes || {}, metrics: h.metrics || {} });
-      }
-    });
-  }
 
   if (!checkins.length) {
     document.getElementById('dash-grid').innerHTML='<div class="dash-empty">No check-in data yet. EPMs need to save their first check-in.</div>';
