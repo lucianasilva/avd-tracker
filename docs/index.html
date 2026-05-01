@@ -146,10 +146,11 @@
   .no-data{font-size:12px;color:var(--text3);font-style:italic}
 
 
-  .goal-field-wrap{display:flex;align-items:center;gap:8px;margin-bottom:12px;padding:8px 12px;background:var(--bg2);border-radius:var(--radius);border:0.5px solid var(--border)}
-  .goal-field-label{font-size:11px;font-weight:500;color:var(--text2);white-space:nowrap}
-  .goal-field-input{flex:1;font-size:12px;padding:4px 8px;border:0.5px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text)}
-  .goal-saved{font-size:10px;color:var(--success-text);margin-left:4px}
+  .goal-field-wrap{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
+  .goal-field-label{font-size:11px;font-weight:500;color:var(--text2)}
+  .goal-field-input{width:100%;font-size:13px;font-weight:500;padding:8px 12px;border:0.5px solid var(--border);border-radius:var(--radius);background:var(--bg);color:var(--text)}
+  .goal-field-input:focus{border-color:var(--border2)}
+  .goal-saved{font-size:10px;color:var(--success-text);margin-top:2px}
 
   /* Flow Metrics */
   .metric-block{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:16px 20px;margin-bottom:12px}
@@ -263,6 +264,13 @@
   <!-- CHECK-IN -->
   <div class="view" id="view-checkin">
     <div class="stat-grid" id="ci-stats"></div>
+    <div class="section-gap">
+      <div class="checkin-title">Check-in date</div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <input type="date" id="ci-date" style="font-size:13px;padding:6px 10px;border:0.5px solid var(--border);border-radius:var(--radius);background:var(--bg);color:var(--text)" oninput="saveCiDate(this.value)"/>
+        <span style="font-size:12px;color:var(--text3)">Date of this bi-weekly check-in</span>
+      </div>
+    </div>
     <div class="section-gap">
       <div class="checkin-title">Milestone alerts</div>
       <div id="ci-alerts"></div>
@@ -602,7 +610,7 @@ function showError(msg) { const el=document.getElementById('auth-error'); el.tex
 /* ══ DATA ══ */
 function storageKey() {
   const team = (getData().setup?.team||'default').replace(/\s+/g,'-').toLowerCase();
-  return `avd-data-${currentUser}-${team}`;
+  return `avd-data-${team}`;
 }
 function getData()  { try{return JSON.parse(localStorage.getItem(storageKey())||'{}')}catch(e){return{}} }
 function setData(d) { localStorage.setItem(storageKey(),JSON.stringify(d)); }
@@ -737,6 +745,13 @@ function renderCheckin() {
   const avg=sc.length?(sc.reduce((a,b)=>a+b,0)/sc.length).toFixed(1):'—';
   const overdue=[];
   ACTIONS.forEach(a=>a.milestones.forEach((m,mi)=>{const dv=dates[dk(a.id,mi)];if(isOverdue(dv,m.commits.every((_,ci)=>commits[ck(a.id,mi,ci)])))overdue.push(`${a.code} — ${m.week}`);}));
+  // Set check-in date — use saved date or default to today
+  const ciDateEl = document.getElementById('ci-date');
+  if (ciDateEl) {
+    const savedDate = d.checks?.ciDate;
+    ciDateEl.value = savedDate || new Date().toISOString().slice(0,10);
+  }
+
   document.getElementById('ci-stats').innerHTML=`
     <div class="stat-card"><div class="stat-label">Overall progress</div><div class="stat-val">${total?Math.round(done/total*100):0}%</div></div>
     <div class="stat-card"><div class="stat-label">Avg adoption score</div><div class="stat-val">${avg}</div></div>
@@ -762,6 +777,13 @@ function renderCheckin() {
   }).join('');
 }
 
+function saveCiDate(val) {
+  const d = getData();
+  if (!d.checks) d.checks = {};
+  d.checks.ciDate = val;
+  setData(d);
+}
+
 function setScore(id,val){const d=getData();if(!d.checks)d.checks={};if(!d.checks.scores)d.checks.scores={};d.checks.scores[id]=val;setData(d);renderCheckin();}
 function setNote(id,val){const d=getData();if(!d.checks)d.checks={};if(!d.checks.scoreNotes)d.checks.scoreNotes={};d.checks.scoreNotes[id]=val;setData(d);}
 
@@ -770,8 +792,11 @@ async function saveCheckin() {
   if(!d.history) d.history=[];
   const total=ACTIONS.reduce((s,a)=>s+a.milestones.reduce((ss,m)=>ss+m.commits.length,0),0);
   const done=ACTIONS.reduce((s,a)=>s+a.milestones.reduce((ss,m,mi)=>ss+m.commits.filter((_,ci)=>(d.checks?.commits||{})[ck(a.id,mi,ci)]).length,0),0);
-  const entry={date:new Date().toISOString(),scores:{...(d.checks?.scores||{})},notes:{...(d.checks?.scoreNotes||{})},progress:total?Math.round(done/total*100):0,metrics:{...(d.metrics||{})}};
+  const ciDate = d.checks?.ciDate || new Date().toISOString().slice(0,10);
+  const entry={date:new Date(ciDate).toISOString(),scores:{...(d.checks?.scores||{})},notes:{...(d.checks?.scoreNotes||{})},progress:total?Math.round(done/total*100):0,metrics:{...(d.metrics||{})},checkinDate:ciDate};
   d.history.unshift(entry);
+  // Reset date to today for next check-in
+  if (d.checks) d.checks.ciDate = new Date().toISOString().slice(0,10);
   setData(d);
   // Sync to Google Sheets
   await syncToSheets({
