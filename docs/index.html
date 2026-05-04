@@ -871,7 +871,10 @@ function renderCheckin() {
   document.getElementById('ci-scores').innerHTML=ACTIONS.map(a=>{
     const sv=scores[a.id]||'0',nv=notes[a.id]||'';
     return`<div class="score-row">
-      <span class="ac-badge" style="background:${a.color};color:${a.textColor};font-size:11px">${a.code}</span>
+      <div style="display:flex;flex-direction:column;gap:3px">
+        <span class="ac-badge" style="background:${a.color};color:${a.textColor};font-size:11px">${a.code}</span>
+        <span style="font-size:10px;color:var(--text2);line-height:1.3">${a.label}</span>
+      </div>
       <textarea class="score-notes" placeholder="Notes or blockers..." oninput="setNote('${a.id}',this.value)">${nv}</textarea>
       <select class="score-sel" onchange="setScore('${a.id}',this.value)">
         <option value="0" ${sv==='0'?'selected':''}>— not started</option>
