@@ -505,8 +505,8 @@ const ACTIONS = [
   {id:'a1a3',code:'A1+A3',label:'Vertical Slicing + Discovery → Delivery Flow',tagline:'Vertical slicing + progressive elaboration',color:'#534AB7',textColor:'#EEEDFE',
    milestones:[
     {week:'Week 1',commits:[
-      {text:'All roles read AVD Vertical Slicing material',owner:'All',done:'EPM confirms reading in Slack channel'},
-      {text:'Pilot initiative chosen and recorded in the roadmap',owner:'EPM',done:'Initiative name + Epic link filled in setup'}
+      
+      {text:'Pilot initiative chosen and recorded in the AVD tracker',owner:'EPM',done:'Initiative name + Epic link filled in setup'}
     ]},
     {week:'Week 2',commits:[
       {text:'PM/PO/PD identify the first minimal vertical slice',owner:'PM/PO/PD',done:'Slice documented: which problem? which user? Includes UI + logic + data?'},
@@ -521,7 +521,7 @@ const ACTIONS = [
   {id:'a2',code:'A2',label:'WIP Limits',tagline:'Restrict to flow faster',color:'#0F6E56',textColor:'#E1F5EE',
    milestones:[
     {week:'Week 1',commits:[
-      {text:'EPM and TL define WIP limit per flow stage (Ideation → Closed)',owner:'EPM',done:'Number defined and documented. E.g. "max 12 active Epics"'},
+      {text:'EPM and TL define WIP limit',owner:'EPM',done:'Number defined and documented. E.g. "max 12 active Epics"'},
       {text:'Jira board updated with visual WIP limit indicator per column',owner:'EPM',done:'Board is public and shows the limit visually'},
       {text:'Pull system rule communicated',owner:'EPM',done:'Team confirms understanding. Any resistance logged'}
     ]},
@@ -537,14 +537,16 @@ const ACTIONS = [
       {text:'TL takes over refinement with slicing focus: "Can this be done in ≤5 days?"',owner:'TL',done:'TL facilitates at least 1 refinement without story points'}
     ]},
     {week:'Week 2',commits:[
-      {text:'EPM records Cycle Time and Throughput baseline for forecasting',owner:'EPM',done:'Story Cycle Time Action Plan created with historical data'}
+      {text:'EPM uses historical throughput and average cycle time for forecasting instead of manual estimates',owner:'EPM',done:'EPM can answer "when will it be done?" using flow data only'}
     ]}
   ]},
   {id:'a5',code:'A5',label:'Story Cycle Time',tagline:'Target: 85th pct ≤ 15 days by end of 2026',color:'#854F0B',textColor:'#FAEEDA',
    milestones:[
     {week:'Week 1',commits:[
-      {text:'EPM records current 85th percentile Cycle Time as official baseline',owner:'EPM',done:'Baseline documented in Story CT Action Plan with date'},
-      {text:'EPM fills Action Plan with root cause of top outliers',owner:'EPM',done:'At least 3 outliers analyzed with identified root cause'}
+      {text:'EPM records current 85th percentile Cycle Time as official baseline',owner:'EPM',done:'Baseline documented in Story CT Action Plan with date'}
+    ]},
+    {week:'Week 2',commits:[
+      {text:'EPM starts planning the actions identified',owner:'EPM',done:'Action Plan created with at least 1 quick win identified and assigned'}
     ]},
     {week:'Month 1',commits:[
       {text:'EPM teaches TL to read metrics in Tableau',owner:'EPM',done:'TL can identify at-risk stories on the dashboard independently'},
@@ -556,7 +558,7 @@ const ACTIONS = [
    milestones:[
     {week:'Week 1',commits:[
       {text:'PM/PO define Value Goal for the first pilot iteration',owner:'PM/PO',done:'"By end of this iteration, [user] can [action]. Success = [metric]"'},
-      {text:'PM/PO align all stories to the goal — off-goal stories deferred',owner:'PM/PO',done:'All stories have label or comment linking them to the goal'}
+      {text:'PM/PO align all stories to the goal',owner:'PM/PO',done:'All stories have label or comment linking them to the goal'}
     ]},
     {week:'Week 2',commits:[
       {text:'PO validates whether goal was achieved — independent of ticket count',owner:'PM/PO',done:'"Goal achieved: yes/no. Evidence: [link or description]"',note:'End of 1st iteration'},
@@ -569,8 +571,11 @@ const ACTIONS = [
       {text:'PM shares value context with team: real use cases, customer impact',owner:'PM/PO',done:'Team can articulate "why does this matter to the customer?" without docs'},
       {text:'EPM shifts bi-weekly reporting to Value Outcome',owner:'EPM',done:'Next report does not mention ticket count. Mentions user impact'}
     ]},
+    {week:'Week 2',commits:[
+      {text:'EPM starts planning the actions identified',owner:'EPM',done:'Action Plan created with at least 1 quick win identified and assigned'}
+    ]},
     {week:'Month 1',commits:[
-      {text:'EPM begins tracking Epic Full Cycle Time and documents baseline',owner:'EPM',done:'Epic Full CT Action Plan created. 50% reduction target documented'},
+      
       {text:'First Epic Value Demo completed',owner:'EPM',done:'Demo recorded or documented. No Epic marked Done without demo'}
     ]}
   ]}
