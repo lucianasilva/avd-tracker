@@ -1351,26 +1351,53 @@ function importMultiple(e) {
   if (!files.length) return;
   let loaded = 0;
   const results = [];
+
+  function processFile(file, d) {
+    let team = d.setup?.team;
+
+    // If no team name found, ask the user
+    if (!team) {
+      team = prompt(`The file "${file.name}" has no team name. Please enter the team name:`);
+      if (!team || !team.trim()) return;
+      team = team.trim();
+      if (!d.setup) d.setup = {};
+      d.setup.team = team;
+    }
+
+    if (!d.history?.length && !d.checks && !d.metrics) return;
+
+    const key = 'avd-data-' + team.replace(/\s+/g,'-').toLowerCase();
+    let existing = {};
+    try { existing = JSON.parse(localStorage.getItem(key) || '{}'); } catch(err) {}
+    if (!existing.history) existing.history = [];
+
+    // Merge history
+    if (d.history?.length) {
+      d.history.forEach(h => {
+        if (!existing.history.find(x => x.date === h.date)) existing.history.push(h);
+      });
+      existing.history.sort((a,b) => new Date(b.date) - new Date(a.date));
+    }
+
+    // Merge checks (scores, notes, commits) if no history entry
+    if (d.checks && !existing.history.length) {
+      if (!existing.checks) existing.checks = {};
+      existing.checks = { ...existing.checks, ...d.checks };
+    }
+
+    if (!existing.setup || !existing.setup.team) existing.setup = d.setup;
+    if (d.metrics) existing.metrics = d.metrics;
+
+    localStorage.setItem(key, JSON.stringify(existing));
+    results.push(team);
+  }
+
   files.forEach(file => {
     const r = new FileReader();
     r.onload = ev => {
       try {
         const d = JSON.parse(ev.target.result);
-        const team = d.setup?.team;
-        if (team && d.history?.length) {
-          const key = 'avd-data-' + team.replace(/\s+/g,'-').toLowerCase();
-          let existing = {};
-          try { existing = JSON.parse(localStorage.getItem(key) || '{}'); } catch(err) {}
-          if (!existing.history) existing.history = [];
-          d.history.forEach(h => {
-            if (!existing.history.find(x => x.date === h.date)) existing.history.push(h);
-          });
-          existing.history.sort((a,b) => new Date(b.date) - new Date(a.date));
-          if (!existing.setup)   existing.setup   = d.setup;
-          if (d.metrics && !existing.metrics) existing.metrics = d.metrics;
-          localStorage.setItem(key, JSON.stringify(existing));
-          results.push(team);
-        }
+        processFile(file, d);
       } catch(err) { console.warn('Failed to import:', file.name, err); }
       loaded++;
       if (loaded === files.length) {
