@@ -345,6 +345,13 @@
     <div class="card" id="dash-metrics">
       <div class="no-data">No metrics data yet.</div>
     </div>
+
+    <div id="dash-comments-section" style="display:none">
+      <div style="font-size:13px;font-weight:500;margin-bottom:12px;margin-top:20px">Latest check-in comments</div>
+      <div class="card" id="dash-comments">
+        <div class="no-data">No comments yet.</div>
+      </div>
+    </div>
   </div>
 
   <!-- FLOW METRICS -->
@@ -1418,9 +1425,72 @@ let _allDashData = { checkins: [] };
 function filterDashboard(team) {
   if (team === 'all') {
     renderDashboard(_allDashData);
+    document.getElementById('dash-comments-section').style.display = 'none';
   } else {
-    renderDashboard({ checkins: _allDashData.checkins.filter(c => c.team === team) });
+    const filtered = _allDashData.checkins.filter(c => c.team === team);
+    renderDashboard({ checkins: filtered });
+    renderComments(team, filtered);
   }
+}
+
+/* ══ DASHBOARD COMMENTS ══ */
+function renderComments(team, checkins) {
+  const section = document.getElementById('dash-comments-section');
+  const el      = document.getElementById('dash-comments');
+
+  if (!checkins.length) {
+    section.style.display = 'none';
+    return;
+  }
+
+  // Use most recent check-in
+  const latest = checkins.sort((a,b) => new Date(b.date) - new Date(a.date))[0];
+  const notes  = latest.notes  || {};
+  const scores = latest.scores || {};
+  const dt     = new Date(latest.date).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+
+  const bgs  = ['#F1EFE8','#FCEBEB','#FAEEDA','#E6F1FB','#EAF3DE','#EEEDFE'];
+  const cols = ['#888780','#A32D2D','#854F0B','#185FA5','#3B6D11','#3C3489'];
+
+  const actionRows = ACTIONS.map(a => {
+    const note  = notes[a.id]?.trim();
+    const score = parseInt(scores[a.id] || 0);
+    if (!note) return '';
+    return `<div style="padding:10px 0;border-bottom:0.5px solid var(--border)">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <span class="owner-pill" style="background:${bgs[score]};color:${cols[score]};flex-shrink:0">${a.code} ${score||'—'}</span>
+        <span style="font-size:12px;font-weight:500;color:var(--text)">${a.label}</span>
+      </div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.6;white-space:pre-line">${note}</div>
+    </div>`;
+  }).filter(Boolean).join('');
+
+  // Flow metrics comments
+  const metricLabels = { sct:'Story Cycle Time', ect:'Epic Full Cycle Time', fh:'Flow Handoff', wip:'WIP Active Epics' };
+  const metricUnits  = { sct:'days', ect:'days', fh:'days', wip:'epics' };
+  const metricRows = latest.metrics ? Object.entries(latest.metrics)
+    .filter(([id, m]) => m?.comment?.trim() && metricLabels[id])
+    .map(([id, m]) => `<div style="padding:10px 0;border-bottom:0.5px solid var(--border)">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <span style="font-size:10px;font-weight:500;background:var(--bg2);border:0.5px solid var(--border);border-radius:3px;padding:2px 7px;color:var(--text2)">${m.value} ${metricUnits[id]||''}</span>
+        <span style="font-size:12px;font-weight:500;color:var(--text)">${metricLabels[id]}</span>
+      </div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.6;white-space:pre-line">${m.comment}</div>
+      ${m.action ? `<div style="font-size:11px;color:var(--text3);margin-top:4px;line-height:1.5">↳ ${m.action}</div>` : ''}
+    </div>`)
+    .join('') : '';
+
+  if (!actionRows && !metricRows) {
+    section.style.display = 'none';
+    return;
+  }
+
+  el.innerHTML = `
+    <div style="font-size:11px;color:var(--text3);margin-bottom:12px">Check-in: ${dt} · ${team}</div>
+    ${actionRows ? `<div style="margin-bottom:${metricRows?'16px':'0'}">${actionRows}</div>` : ''}
+    ${metricRows ? `<div><div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:4px;padding-top:8px">Flow Metrics</div>${metricRows}</div>` : ''}
+  `;
+  section.style.display = 'block';
 }
 
 /* ══ INIT ══ */
