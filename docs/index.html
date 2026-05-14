@@ -1237,8 +1237,11 @@ function renderMetrics() {
 function renderMetricTrend(id, history) {
   const el = document.getElementById('m-'+id+'-trend');
   if (!el) return;
-  const vals = history.map(h => parseFloat(h.metrics?.[id]?.value)).filter(v => !isNaN(v));
+  // Sort newest-first explicitly to ensure correct trend direction
+  const sorted = [...history].sort((a,b) => new Date(b.date) - new Date(a.date));
+  const vals = sorted.map(h => parseFloat(h.metrics?.[id]?.value)).filter(v => !isNaN(v));
   if (vals.length < 2) { el.innerHTML = '<span class="trend-indicator trend-new">No trend yet</span>'; return; }
+  // vals[0] = most recent, vals[1] = previous
   const last = vals[0], prev = vals[1];
   const diff = last - prev;
   const pct  = prev ? Math.abs(Math.round(diff/prev*100)) : 0;
