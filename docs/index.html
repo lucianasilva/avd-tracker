@@ -1146,15 +1146,21 @@ function renderDashboard(data) {
         ? `<div style="font-size:11px;color:var(--text3);margin-top:6px;padding-top:6px;border-top:0.5px solid var(--border)">🎯 Target: ${def.target} ${def.unit}</div>`
         : '';
 
+      // After sort oldest→newest: last entry = most recent, second-to-last = previous
       const last = vals[vals.length-1].val;
       const prev = vals.length > 1 ? vals[vals.length-2].val : null;
       let trendHtml = '';
       if (prev !== null) {
         const diff = last - prev;
         const pct  = Math.abs(Math.round(diff/prev*100));
-        if (Math.abs(diff) < 0.5)   trendHtml = `<span class="trend-indicator trend-stable">→ Stable</span>`;
-        else if (diff > 0) trendHtml = `<span class="trend-indicator trend-up-bad">↑ +${pct}%</span>`;
-        else               trendHtml = `<span class="trend-indicator trend-down-good">↓ -${pct}%</span>`;
+        if (Math.abs(diff) < 0.5)        trendHtml = `<span class="trend-indicator trend-stable">→ Stable</span>`;
+        else if (def.higherIsBad) {
+          if (diff > 0) trendHtml = `<span class="trend-indicator trend-up-bad">↑ +${pct}% vs last</span>`;
+          else          trendHtml = `<span class="trend-indicator trend-down-good">↓ -${pct}% vs last</span>`;
+        } else {
+          if (diff > 0) trendHtml = `<span class="trend-indicator trend-down-good">↑ +${pct}% vs last</span>`;
+          else          trendHtml = `<span class="trend-indicator trend-up-bad">↓ -${pct}% vs last</span>`;
+        }
       }
 
       const goal = vals[vals.length-1].goal;
