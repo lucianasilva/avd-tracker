@@ -1120,7 +1120,8 @@ function renderDashboard(data) {
     const teamCharts = Object.entries(byTeam).map(([team, entries]) => {
       const vals = entries
         .filter(e => e.metrics?.[def.id]?.value !== undefined && e.metrics[def.id].value !== '')
-        .map(e => ({ date: new Date(e.date), val: parseFloat(e.metrics[def.id].value), goal: e.metrics?.[def.id]?.goal || e.metrics?.[def.id]?.limit }));
+        .map(e => ({ date: new Date(e.date), val: parseFloat(e.metrics[def.id].value), goal: e.metrics?.[def.id]?.goal || e.metrics?.[def.id]?.limit }))
+        .sort((a,b) => a.date - b.date);
 
       if (!vals.length) return '';
 
@@ -1263,7 +1264,7 @@ function renderMetricHistory(id, history) {
       <div class="metric-bar" style="height:${ht}px;width:28px;border-radius:3px 3px 0 0" title="${dt}: ${v}"></div>
       <div style="font-size:10px;color:var(--text3);white-space:nowrap;text-align:center">${dt}</div>
     </div>`;
-  }).reverse().join('');
+  }).join('');
   el.innerHTML = `
     <div class="metric-history-title">Last ${entries.length} check-ins</div>
     <div class="metric-chart" style="height:88px;align-items:flex-end">${bars}</div>`;
