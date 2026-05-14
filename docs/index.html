@@ -61,7 +61,7 @@
   .btn-ghost{background:transparent;border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 14px;font-size:13px;color:var(--text2)}
   .btn-ghost:hover{background:var(--bg2)}
   .btn-danger{background:transparent;border:0.5px solid var(--danger-border);border-radius:var(--radius);padding:7px 14px;font-size:13px;color:var(--danger-text)}
-  .save-msg{font-size:12px;color:var(--success-text);background:var(--success-bg);padding:4px 10px;border-radius:4px}
+  .save-msg{font-size:12px;color:var(--success-text);background:var(--success-bg);padding:4px 10px;border-radius:4px;display:none;align-items:center;gap:6px}
   .card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:16px 20px;margin-bottom:12px}
   .save-bar{display:flex;align-items:center;gap:10px;margin-top:16px;padding-top:16px;border-top:0.5px solid var(--border);flex-wrap:wrap}
   .info-box{background:var(--info-bg);border:0.5px solid var(--info-border);border-radius:var(--radius);padding:12px 16px;font-size:12px;color:var(--info-text);line-height:1.6}
@@ -243,7 +243,7 @@
       </div>
       <div class="save-bar">
         <button class="btn-primary" onclick="saveSetup()">Save team setup</button>
-        <span id="setup-msg" class="save-msg" style="display:none">Saved.</span>
+        <span id="setup-msg" class="save-msg" >Saved.</span>
       </div>
     </div>
     <div style="margin-top:10px;padding:10px 12px;background:var(--bg2);border-radius:var(--radius);font-size:12px;color:var(--text2);line-height:1.6">
@@ -264,7 +264,7 @@
     <div id="roadmap-content"></div>
     <div class="save-bar">
       <button class="btn-primary" onclick="saveRoadmap()">Save progress</button>
-      <span id="roadmap-msg" class="save-msg" style="display:none">Saved.</span>
+      <span id="roadmap-msg" class="save-msg" >Saved.</span>
     </div>
   </div>
 
@@ -302,7 +302,7 @@
     <div class="save-bar">
       <button class="btn-primary" onclick="saveCheckin()">Save check-in</button>
       <button class="btn-ghost" onclick="genCoaching()">Get coaching prompts</button>
-      <span id="checkin-msg" class="save-msg" style="display:none">Saved.</span>
+      <span id="checkin-msg" class="save-msg" >Saved.</span>
     </div>
     <div id="coaching-box" class="coaching-box" style="display:none">
       <div style="font-size:12px;font-weight:500;color:var(--text2);margin-bottom:8px">Coaching focus for this check-in</div>
@@ -478,7 +478,7 @@
     <div class="save-bar">
       <button class="btn-primary" onclick="saveMetrics()">Save flow metrics</button>
       <button class="btn-ghost" onclick="exportData()" style="margin-left:auto">Export JSON ↓</button>
-      <span id="metrics-msg" class="save-msg" style="display:none">Saved.</span>
+      <span id="metrics-msg" class="save-msg" >Saved.</span>
     </div>
     <div style="margin-top:10px;padding:10px 12px;background:var(--bg2);border-radius:var(--radius);font-size:12px;color:var(--text2);line-height:1.6">
       ✅ Done with your bi-weekly update? Click <strong>Export JSON ↓</strong> and send the file to <strong>Luciana Silva on Slack</strong>.
@@ -665,7 +665,7 @@ function storageKey() {
 }
 function getData()  { try{return JSON.parse(localStorage.getItem(storageKey())||'{}')}catch(e){return{}} }
 function setData(d) { localStorage.setItem(storageKey(),JSON.stringify(d)); }
-function flash(id)  { const el=document.getElementById(id); el.style.display='inline-flex'; setTimeout(()=>el.style.display='none',2500); }
+function flash(id)  { const el=document.getElementById(id); if(!el) return; el.style.display='flex'; setTimeout(()=>el.style.display='none',2500); }
 
 /* ══ SHEETS SYNC ══ */
 async function syncToSheets(payload) {
@@ -925,7 +925,14 @@ async function saveCheckin() {
   const done=ACTIONS.reduce((s,a)=>s+a.milestones.reduce((ss,m,mi)=>ss+m.commits.filter((_,ci)=>(d.checks?.commits||{})[ck(a.id,mi,ci)]).length,0),0);
   const ciDate = d.checks?.ciDate || new Date().toISOString().slice(0,10);
   const entry={date:new Date(ciDate).toISOString(),scores:{...(d.checks?.scores||{})},notes:{...(d.checks?.scoreNotes||{})},progress:total?Math.round(done/total*100):0,metrics:{...(d.metrics||{})},checkinDate:ciDate};
+  // Remove existing entry for the same date before adding new one
+  const entryDay = entry.date.slice(0,10);
+  d.history = d.history.filter(h => h.date?.slice(0,10) !== entryDay);
   d.history.unshift(entry);
+
+  // Keep history sorted newest-first
+  d.history.sort((a,b) => new Date(b.date) - new Date(a.date));
+
   // Reset date to today for next check-in
   if (d.checks) d.checks.ciDate = new Date().toISOString().slice(0,10);
   setData(d);
@@ -1322,6 +1329,20 @@ function saveMetrics() {
     d.history.unshift(entry);
   }
   entry.metrics = { ...(d.metrics||{}) };
+
+  // Remove duplicate entries for the same date (keep the latest save)
+  const seen = new Set();
+  d.history = d.history.filter(h => {
+    const dayKey = h.date?.slice(0,10);
+    if (seen.has(dayKey)) return false;
+    seen.add(dayKey);
+    return true;
+  });
+
+  // Keep history sorted newest-first
+  d.history.sort((a,b) => new Date(b.date) - new Date(a.date));
+
+  setData(d);
   // Reset date to today for next entry
   if (d.metrics) d.metrics.metricsDate = new Date().toISOString().slice(0,10);
   setData(d);
