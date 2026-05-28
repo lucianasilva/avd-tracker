@@ -1244,8 +1244,17 @@ function renderMetrics() {
 function renderMetricTrend(id, history) {
   const el = document.getElementById('m-'+id+'-trend');
   if (!el) return;
-  // Sort newest-first explicitly to ensure correct trend direction
-  const sorted = [...history].sort((a,b) => new Date(b.date) - new Date(a.date));
+  // Deduplicate by day, then sort newest-first for trend calculation
+  const seenDays = new Set();
+  const sorted = [...history]
+    .filter(h => {
+      if (!h.metrics?.[id]?.value) return false;
+      const day = h.date?.slice(0,10);
+      if (seenDays.has(day)) return false;
+      seenDays.add(day);
+      return true;
+    })
+    .sort((a,b) => new Date(b.date) - new Date(a.date));
   const vals = sorted.map(h => parseFloat(h.metrics?.[id]?.value)).filter(v => !isNaN(v));
   if (vals.length < 2) { el.innerHTML = '<span class="trend-indicator trend-new">No trend yet</span>'; return; }
   // vals[0] = most recent, vals[1] = previous
@@ -1267,7 +1276,18 @@ function renderMetricTrend(id, history) {
 function renderMetricHistory(id, history) {
   const el = document.getElementById('m-'+id+'-history');
   if (!el) return;
-  const entries = history.filter(h => h.metrics?.[id]?.value !== undefined).slice(0,6);
+  // Deduplicate by day and sort oldest→newest for bar display
+  const seen = new Set();
+  const entries = [...history]
+    .filter(h => {
+      if (!h.metrics?.[id]?.value) return false;
+      const day = h.date?.slice(0,10);
+      if (seen.has(day)) return false;
+      seen.add(day);
+      return true;
+    })
+    .sort((a,b) => new Date(a.date) - new Date(b.date))
+    .slice(-6);
   if (!entries.length) { el.innerHTML=''; return; }
   const vals = entries.map(h => parseFloat(h.metrics[id].value));
   const max  = Math.max(...vals, 1);
