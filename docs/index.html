@@ -382,8 +382,8 @@
           <div id="m-sct-trend" style="margin-top:6px;text-align:center"></div>
         </div>
         <div class="metric-right">
-          <textarea class="metric-textarea" id="m-sct-comment" placeholder="What is driving this number? Any outliers?" oninput="saveMetric('sct','comment',this.value)"></textarea>
-          <textarea class="metric-textarea" id="m-sct-action" placeholder="Action item: what will we do to improve?" oninput="saveMetric('sct','action',this.value)"></textarea>
+          <textarea class="metric-textarea" id="m-sct-comment" placeholder="What is driving this number? Any outliers?" oninput="debouncedSaveMetric('sct','comment',this.value)"></textarea>
+          <textarea class="metric-textarea" id="m-sct-action" placeholder="Action item: what will we do to improve?" oninput="debouncedSaveMetric('sct','action',this.value)"></textarea>
         </div>
       </div>
       <div class="metric-history" id="m-sct-history"></div>
@@ -400,7 +400,7 @@
       </div>
       <div class="goal-field-wrap">
         <span class="goal-field-label">Team goal:</span>
-        <input class="goal-field-input" id="m-ect-goal" placeholder="—" oninput="saveMetricGoal('ect',this.value)"/>
+        <input class="goal-field-input" id="m-ect-goal" placeholder="—" oninput="debouncedSaveMetricGoal('ect',this.value)"/>
         <span class="goal-saved" id="m-ect-goal-saved" style="display:none">Saved</span>
       </div>
       <div class="metric-inputs">
@@ -411,8 +411,8 @@
           <div id="m-ect-trend" style="margin-top:6px;text-align:center"></div>
         </div>
         <div class="metric-right">
-          <textarea class="metric-textarea" id="m-ect-comment" placeholder="What is driving this number? Any blockers?" oninput="saveMetric('ect','comment',this.value)"></textarea>
-          <textarea class="metric-textarea" id="m-ect-action" placeholder="Action item: what will we do to improve?" oninput="saveMetric('ect','action',this.value)"></textarea>
+          <textarea class="metric-textarea" id="m-ect-comment" placeholder="What is driving this number? Any blockers?" oninput="debouncedSaveMetric('ect','comment',this.value)"></textarea>
+          <textarea class="metric-textarea" id="m-ect-action" placeholder="Action item: what will we do to improve?" oninput="debouncedSaveMetric('ect','action',this.value)"></textarea>
         </div>
       </div>
       <div class="metric-history" id="m-ect-history"></div>
@@ -438,8 +438,8 @@
           <div id="m-wip-trend" style="margin-top:6px;text-align:center"></div>
         </div>
         <div class="metric-right">
-          <textarea class="metric-textarea" id="m-wip-comment" placeholder="Any WIP violations this iteration? What caused them?" oninput="saveMetric('wip','comment',this.value)"></textarea>
-          <textarea class="metric-textarea" id="m-wip-action" placeholder="Action item: how will we protect the WIP limit?" oninput="saveMetric('wip','action',this.value)"></textarea>
+          <textarea class="metric-textarea" id="m-wip-comment" placeholder="Any WIP violations this iteration? What caused them?" oninput="debouncedSaveMetric('wip','comment',this.value)"></textarea>
+          <textarea class="metric-textarea" id="m-wip-action" placeholder="Action item: how will we protect the WIP limit?" oninput="debouncedSaveMetric('wip','action',this.value)"></textarea>
         </div>
       </div>
       <div class="metric-history" id="m-wip-history"></div>
@@ -457,7 +457,7 @@
       </div>
       <div class="goal-field-wrap">
         <span class="goal-field-label">Team goal:</span>
-        <input class="goal-field-input" id="m-fh-goal" placeholder="—" oninput="saveMetricGoal('fh',this.value)"/>
+        <input class="goal-field-input" id="m-fh-goal" placeholder="—" oninput="debouncedSaveMetricGoal('fh',this.value)"/>
         <span class="goal-saved" id="m-fh-goal-saved" style="display:none">Saved</span>
       </div>
       <div class="metric-inputs">
@@ -468,8 +468,8 @@
           <div id="m-fh-trend" style="margin-top:6px;text-align:center"></div>
         </div>
         <div class="metric-right">
-          <textarea class="metric-textarea" id="m-fh-comment" placeholder="What is causing the handoff delay? Any bottlenecks?" oninput="saveMetric('fh','comment',this.value)"></textarea>
-          <textarea class="metric-textarea" id="m-fh-action" placeholder="Action item: how will we reduce the wait time?" oninput="saveMetric('fh','action',this.value)"></textarea>
+          <textarea class="metric-textarea" id="m-fh-comment" placeholder="What is causing the handoff delay? Any bottlenecks?" oninput="debouncedSaveMetric('fh','comment',this.value)"></textarea>
+          <textarea class="metric-textarea" id="m-fh-action" placeholder="Action item: how will we reduce the wait time?" oninput="debouncedSaveMetric('fh','action',this.value)"></textarea>
         </div>
       </div>
       <div class="metric-history" id="m-fh-history"></div>
@@ -667,16 +667,16 @@ function getData()  { try{return JSON.parse(localStorage.getItem(storageKey())||
 function setData(d) { localStorage.setItem(storageKey(),JSON.stringify(d)); }
 function flash(id)  { const el=document.getElementById(id); if(!el) return; el.style.display='flex'; setTimeout(()=>el.style.display='none',2500); }
 
-/* ══ SHEETS SYNC ══ */
-async function syncToSheets(payload) {
-  try {
-    await fetch(GATEKEEPER_URL + '/sheets', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-  } catch(e) { console.warn('Sheets sync failed:', e); }
+// Debounce — only fires after user stops typing for `delay` ms
+function debounce(fn, delay=400) {
+  let t;
+  return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), delay); };
 }
+const debouncedSaveMetric = debounce((id, field, value) => saveMetric(id, field, value));
+const debouncedSetNote    = debounce((id, value)        => setNote(id, value));
+const debouncedSaveMetricGoal = debounce((id, value)    => saveMetricGoal(id, value));
+
+/* ══ SHEETS SYNC — disabled ══ */
 
 /* ══ NAV ══ */
 function showView(v, btn) {
@@ -894,7 +894,7 @@ function renderCheckin() {
         <span class="ac-badge" style="background:${a.color};color:${a.textColor};font-size:11px">${a.code}</span>
         <span style="font-size:10px;color:var(--text2);line-height:1.3">${a.label}</span>
       </div>
-      <textarea class="score-notes" placeholder="Notes or blockers..." oninput="setNote('${a.id}',this.value)">${nv}</textarea>
+      <textarea class="score-notes" placeholder="Notes or blockers..." oninput="debouncedSetNote('${a.id}',this.value)">${nv}</textarea>
       <select class="score-sel" onchange="setScore('${a.id}',this.value)">
         <option value="0" ${sv==='0'?'selected':''}>— not started</option>
         <option value="1" ${sv==='1'?'selected':''}>1 Awareness</option>
@@ -936,11 +936,7 @@ async function saveCheckin() {
   // Reset date to today for next check-in
   if (d.checks) d.checks.ciDate = new Date().toISOString().slice(0,10);
   setData(d);
-  // Sync to Google Sheets
-  await syncToSheets({
-    type:'checkin', team:d.setup?.team||'Unknown', user:currentUser,
-    date:entry.date, progress:entry.progress, scores:entry.scores, notes:entry.notes
-  });
+  // Sheets sync disabled — data saved locally only
   flash('checkin-msg');
   renderHistory();
 }
