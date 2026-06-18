@@ -481,7 +481,7 @@
       <span id="metrics-msg" class="save-msg" >Saved.</span>
     </div>
     <div style="margin-top:10px;padding:10px 12px;background:var(--bg2);border-radius:var(--radius);font-size:12px;color:var(--text2);line-height:1.6">
-      ✅ Done with your bi-weekly update? Click <strong>Export JSON ↓</strong> and send the file to <strong>Luciana Silva on Slack</strong>.
+      ✅ Done with your bi-weekly update? Click <strong>Save flow metrics</strong> — your JSON will download automatically and your email client will open with Luciana Silva pre-filled. Just attach the file and send!
     </div>
   </div>
 
@@ -688,15 +688,25 @@ const debouncedSaveMetric = debounce((id, field, value) => saveMetric(id, field,
 const debouncedSetNote    = debounce((id, value)        => setNote(id, value));
 const debouncedSaveMetricGoal = debounce((id, value)    => saveMetricGoal(id, value));
 
-/* ══ JIRA SYNC ══ */
-async function syncToJira(payload) {
-  try {
-    fetch(GATEKEEPER_URL + '/jira/checkin', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    }); // fire and forget — don't await, don't block UI
-  } catch(e) { console.warn('Jira sync failed silently:', e); }
+/* ══ EMAIL EXPORT ══ */
+function promptEmailExport(d) {
+  const team    = d.setup?.team || 'Unknown Team';
+  const date    = new Date().toISOString().slice(0,10);
+  const subject = encodeURIComponent(`[AVD Tracker] ${team} — Check-in ${date}`);
+  const body    = encodeURIComponent(
+    `Hi Luciana,\n\nPlease find attached the AVD Tracker check-in for ${team} (${date}).\n\nTeam: ${team}\nProgress: ${d.history?.[0]?.progress || 0}%\n\nBest,\n${d.setup?.epm || 'EPM'}`
+  );
+  const mailto = `mailto:lucianasilva@liferay.com?subject=${subject}&body=${body}`;
+
+  // Download JSON file
+  const blob = new Blob([JSON.stringify(d, null, 2)], { type: 'application/json' });
+  const a    = document.createElement('a');
+  a.href     = URL.createObjectURL(blob);
+  a.download = `avd-${team.replace(/\s+/g,'-').toLowerCase()}-${date}.json`;
+  a.click();
+
+  // Open email client after short delay (so download starts first)
+  setTimeout(() => { window.location.href = mailto; }, 500);
 }
 
 /* ══ NAV ══ */
@@ -988,17 +998,8 @@ async function saveCheckin() {
   // Reset date to today for next check-in
   if (d.checks) d.checks.ciDate = new Date().toISOString().slice(0,10);
   setData(d);
-  // Sync to Jira in background (non-blocking)
-  syncToJira({
-    team: d.setup?.team || 'Unknown',
-    user: currentUser,
-    date: entry.date,
-    checkinDate: entry.checkinDate || ciDate,
-    progress: entry.progress,
-    scores: entry.scores,
-    notes: entry.notes,
-    metrics: d.metrics || {}
-  });
+  // Prompt EPM to send JSON by email
+  promptEmailExport(d);
   flash('checkin-msg');
   renderHistory();
 }
@@ -1096,24 +1097,6 @@ async function loadDashboard() {
       } catch(e) {}
     }
   }
-
-  // 2. Fetch from Jira via Gatekeeper and merge (no duplicates by team+date)
-  try {
-    const res  = await fetch(GATEKEEPER_URL + '/jira/checkins');
-    const data = await res.json();
-    (data.checkins || []).forEach(c => {
-      const exists = allCheckins.find(x =>
-        x.team === c.team && x.date?.slice(0,10) === c.date?.slice(0,10)
-      );
-      if (!exists) allCheckins.push(c);
-      else {
-        // Jira version takes precedence for notes/metrics (more complete)
-        if (c.notes && Object.keys(c.notes).length > Object.keys(exists.notes||{}).length) {
-          Object.assign(exists, { notes: c.notes, metrics: c.metrics });
-        }
-      }
-    });
-  } catch(e) { console.warn('Jira read failed:', e); }
 
   _allDashData = { checkins: allCheckins };
 
@@ -1434,6 +1417,8 @@ function saveMetrics() {
   setData(d);
   renderMetrics();
   flash('metrics-msg');
+  // Prompt EPM to send JSON by email
+  promptEmailExport(getData());
 }
 
 /* ══ EXPORT / IMPORT ══ */
