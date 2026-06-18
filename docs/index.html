@@ -660,11 +660,23 @@ function showError(msg) { const el=document.getElementById('auth-error'); el.tex
 
 /* ══ DATA ══ */
 function storageKey() {
-  const team = (getData().setup?.team||'default').replace(/\s+/g,'-').toLowerCase();
-  return `avd-data-${team}`;
+  const team = (_cache?.setup?.team||'default').replace(/\s+/g,'-').toLowerCase();
+  return 'avd-data-' + team;
 }
-function getData()  { try{return JSON.parse(localStorage.getItem(storageKey())||'{}')}catch(e){return{}} }
-function setData(d) { localStorage.setItem(storageKey(),JSON.stringify(d)); }
+
+// In-memory cache — avoids repeated localStorage reads
+let _cache = null;
+function getData() {
+  if (_cache) return _cache;
+  try { _cache = JSON.parse(localStorage.getItem(storageKey()) || '{}'); }
+  catch(e) { _cache = {}; }
+  return _cache;
+}
+function setData(d) {
+  _cache = d;
+  localStorage.setItem(storageKey(), JSON.stringify(d));
+}
+function clearCache() { _cache = null; }
 function flash(id)  { const el=document.getElementById(id); if(!el) return; el.style.display='flex'; setTimeout(()=>el.style.display='none',2500); }
 
 // Debounce — only fires after user stops typing for `delay` ms
@@ -717,6 +729,7 @@ function saveSetup() {
     const el=document.getElementById('f-'+f);
     if(el) d.setup[f]=el.value;
   });
+  clearCache(); // team name may have changed — reset cache key
   setData(d);
   document.getElementById('header-team').textContent = d.setup.team||'No team set';
   renderRoadmap();
@@ -782,7 +795,7 @@ function renderRoadmap() {
         return `<div class="commit">
           <input type="checkbox" ${chk?'checked':''} onchange="saveCommit('${a.id}',${mi},${ci},this.checked)"/>
           <div>
-            <div class="commit-text${chk?' checked':''}">
+            <div class="commit-text${chk?' checked':''}" data-commit="${ck(a.id,mi,ci)}">
               ${c.note?`<span style="font-size:10px;font-weight:500;color:var(--text3);background:var(--bg2);border:0.5px solid var(--border);border-radius:3px;padding:1px 6px;margin-right:6px">${c.note}</span>`:''}${c.text}
             </div>
             <div class="done-criteria">Done when: ${c.done}</div>
@@ -865,11 +878,41 @@ function toggleAction(id) {
 }
 function saveCommit(aid,mi,ci,val) {
   const d=getData(); if(!d.checks)d.checks={}; if(!d.checks.commits)d.checks.commits={};
-  d.checks.commits[ck(aid,mi,ci)]=val; setData(d); renderRoadmap();
+  d.checks.commits[ck(aid,mi,ci)]=val; setData(d);
+  // Surgical update — toggle text style without full re-render
+  const textEl=document.querySelector('[data-commit="'+ck(aid,mi,ci)+'"]');
+  if(textEl) textEl.classList.toggle('checked',val);
+  // Update week progress bar
+  const action=ACTIONS.find(a=>a.id===aid);
+  if(!action||!action.milestones[mi]) return;
+  const week=action.milestones[mi].week;
+  const weekId='body-week-'+week.replace(/\s+/g,'-');
+  const commits=d.checks.commits||{};
+  let wTotal=0,wDone=0;
+  ACTIONS.forEach(a=>a.milestones.forEach((m,mIdx)=>{
+    if(m.week!==week)return;
+    wTotal+=m.commits.length;
+    wDone+=m.commits.filter((_,cIdx)=>commits[ck(a.id,mIdx,cIdx)]).length;
+  }));
+  const pct=wTotal?Math.round(wDone/wTotal*100):0;
+  const weekBody=document.getElementById(weekId);
+  if(!weekBody)return;
+  const fillEl=weekBody.previousElementSibling?.querySelector('.progress-fill');
+  const metaEl=weekBody.previousElementSibling?.previousElementSibling?.querySelector('.ac-meta');
+  if(fillEl) fillEl.style.width=pct+'%';
+  if(metaEl) metaEl.textContent=wDone+'/'+wTotal+'   '+pct+'%';
 }
 function saveDate(aid,mi,val) {
   const d=getData(); if(!d.checks)d.checks={}; if(!d.checks.dates)d.checks.dates={};
-  d.checks.dates[dk(aid,mi)]=val; setData(d); renderRoadmap();
+  d.checks.dates[dk(aid,mi)]=val; setData(d);
+  // Light update — just update the input style without full re-render
+  const action=ACTIONS.find(a=>a.id===aid);
+  const allDone=action?.milestones[mi]?.commits.every((_,ci)=>d.checks?.commits?.[ck(aid,mi,ci)]);
+  const inputs=document.querySelectorAll('input.ms-date');
+  inputs.forEach(el=>{
+    if(el.getAttribute('onchange')?.includes("'"+aid+"'") && el.getAttribute('onchange')?.includes(','+mi+','))
+      el.classList.toggle('complete',!!allDone);
+  });
 }
 function saveRoadmap() { flash('roadmap-msg'); }
 
@@ -1411,6 +1454,7 @@ function importSingle(e) {
   r.onload = ev => {
     try {
       const d = JSON.parse(ev.target.result);
+      clearCache();
       setData(d);
       applySetup();
       renderRoadmap();
