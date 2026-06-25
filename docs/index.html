@@ -696,17 +696,16 @@ function promptEmailExport(d) {
   const body    = encodeURIComponent(
     `Hi Luciana,\n\nPlease find attached the AVD Tracker check-in for ${team} (${date}).\n\nTeam: ${team}\nProgress: ${d.history?.[0]?.progress || 0}%\n\nBest,\n${d.setup?.epm || 'EPM'}`
   );
-  const mailto = `mailto:lucianasilva@liferay.com?subject=${subject}&body=${body}`;
-
-  // Download JSON file
+  // Download JSON file first
   const blob = new Blob([JSON.stringify(d, null, 2)], { type: 'application/json' });
   const a    = document.createElement('a');
   a.href     = URL.createObjectURL(blob);
   a.download = `avd-${team.replace(/\s+/g,'-').toLowerCase()}-${date}.json`;
   a.click();
 
-  // Open email client after short delay (so download starts first)
-  setTimeout(() => { window.location.href = mailto; }, 500);
+  // Open Gmail compose after short delay
+  const gmailUrl = `https://mail.google.com/mail/?view=cm&to=lucianasilva@liferay.com&su=${subject}&body=${body}`;
+  setTimeout(() => { window.open(gmailUrl, '_blank'); }, 500);
 }
 
 /* ══ NAV ══ */
@@ -998,8 +997,6 @@ async function saveCheckin() {
   // Reset date to today for next check-in
   if (d.checks) d.checks.ciDate = new Date().toISOString().slice(0,10);
   setData(d);
-  // Prompt EPM to send JSON by email
-  promptEmailExport(d);
   flash('checkin-msg');
   renderHistory();
 }
