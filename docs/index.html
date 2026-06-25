@@ -963,6 +963,9 @@ function renderCheckin() {
   document.getElementById('ci-alerts').innerHTML=overdue.length
     ?overdue.map(o=>`<div class="alert-row"><span class="badge badge-overdue">Overdue</span>${o}</div>`).join('')
     :'<div style="font-size:12px;color:var(--success-text);padding:6px 0">No overdue milestones.</div>';
+  const bgs    = ['#E8E7E2','#F7C1C1','#FAC775','#85B7EB','#C0DD97','#CECBF6'];
+  const cols   = ['#444441','#791F1F','#412402','#042C53','#173404','#26215C'];
+  const borders= ['#888780','#A32D2D','#854F0B','#185FA5','#3B6D11','#534AB7'];
   document.getElementById('ci-scores').innerHTML=ACTIONS.map(a=>{
     const sv=scores[a.id]||'0',nv=notes[a.id]||'';
     return`<div class="score-row">
