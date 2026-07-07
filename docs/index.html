@@ -497,7 +497,7 @@
       <span id="metrics-msg" class="save-msg" >Saved.</span>
     </div>
     <div style="margin-top:10px;padding:10px 12px;background:var(--bg2);border-radius:var(--radius);font-size:12px;color:var(--text2);line-height:1.6">
-      ✅ Done with your bi-weekly update? Click <strong>Save flow metrics</strong> — your JSON will download automatically and your email client will open with Luciana Silva pre-filled. Just attach the file and send!
+      ✅ Done with your bi-weekly update? Click <strong>Save flow metrics</strong> — your JSON will download automatically and instructions will appear to send it to Luciana Silva on Slack.
     </div>
   </div>
 
@@ -521,11 +521,6 @@ const ALLOWED_USERS     = [
   'esanzp',
   'renanpglima',
   'marioarb85',
-  'caiomachado2311',
-  'rafaela-nasciment0',
-  'anuragmittal1989',
-  'brunofalc',
-  'jpince',
 ];
 
 /* ══ ACTIONS DATA ══ */
@@ -709,24 +704,50 @@ const debouncedSaveMetric = debounce((id, field, value) => saveMetric(id, field,
 const debouncedSetNote    = debounce((id, value)        => setNote(id, value));
 const debouncedSaveMetricGoal = debounce((id, value)    => saveMetricGoal(id, value));
 
-/* ══ EMAIL EXPORT ══ */
+/* ══ EXPORT & SLACK ══ */
 function promptEmailExport(d) {
-  const team    = d.setup?.team || 'Unknown Team';
-  const date    = new Date().toISOString().slice(0,10);
-  const subject = encodeURIComponent(`[AVD Tracker] ${team} — Check-in ${date}`);
-  const body    = encodeURIComponent(
-    `Hi Luciana,\n\nPlease find attached the AVD Tracker check-in for ${team} (${date}).\n\nTeam: ${team}\nProgress: ${d.history?.[0]?.progress || 0}%\n\nBest,\n${d.setup?.epm || 'EPM'}`
-  );
-  // Download JSON file first
-  const blob = new Blob([JSON.stringify(d, null, 2)], { type: 'application/json' });
+  const team = d.setup?.team || 'Unknown Team';
+  const date = new Date().toISOString().slice(0,10);
+  const json = JSON.stringify(d, null, 2);
+
+  // 1. Download JSON file
+  const blob = new Blob([json], { type: 'application/json' });
   const a    = document.createElement('a');
   a.href     = URL.createObjectURL(blob);
-  a.download = `avd-${team.replace(/\s+/g,'-').toLowerCase()}-${date}.json`;
+  a.download = 'avd-' + team.replace(/\s+/g,'-').toLowerCase() + '-' + date + '.json';
   a.click();
 
-  // Open Gmail compose after short delay
-  const gmailUrl = `https://mail.google.com/mail/?view=cm&to=lucianasilva@liferay.com&su=${subject}&body=${body}`;
-  setTimeout(() => { window.open(gmailUrl, '_blank'); }, 500);
+  // 2. Copy JSON to clipboard silently
+  navigator.clipboard.writeText(json).catch(() => {});
+
+  // 3. Show Slack instructions modal
+  showSlackModal(team, date);
+}
+
+function showSlackModal(team, date) {
+  const existing = document.getElementById('slack-modal');
+  if (existing) existing.remove();
+
+  const filename = 'avd-' + team.replace(/\s+/g,'-').toLowerCase() + '-' + date + '.json';
+  const modal = document.createElement('div');
+  modal.id = 'slack-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px';
+  modal.innerHTML =
+    '<div style="background:var(--bg);border-radius:var(--radius-lg);padding:28px 32px;max-width:480px;width:100%;border:0.5px solid var(--border2)">' +
+      '<div style="font-size:16px;font-weight:500;color:var(--text);margin-bottom:6px">Check-in saved!</div>' +
+      '<div style="font-size:13px;color:var(--text2);margin-bottom:20px;line-height:1.6">Your JSON file has been downloaded. Please send it to <strong>Luciana Silva</strong> on Slack:</div>' +
+      '<ol style="font-size:13px;color:var(--text2);line-height:2.2;padding-left:20px;margin-bottom:20px">' +
+        '<li>Open Slack and go to <strong>@lucianasilva</strong></li>' +
+        '<li>Click the <strong>+</strong> button to attach a file</li>' +
+        '<li>Select the file: <code style="background:var(--bg2);padding:1px 6px;border-radius:3px;font-size:11px">' + filename + '</code></li>' +
+        '<li>Send the message</li>' +
+      '</ol>' +
+      '<div style="display:flex;justify-content:flex-end">' +
+        '<button onclick="document.getElementById('slack-modal').remove()" style="background:var(--liferay-mid);color:white;border:none;border-radius:var(--radius);padding:8px 20px;font-size:13px;font-weight:500;cursor:pointer">Got it!</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e => { if(e.target===modal) modal.remove(); });
 }
 
 /* ══ NAV ══ */
