@@ -66,6 +66,11 @@
   .btn-ghost:hover{background:var(--bg2)}
   .btn-danger{background:transparent;border:0.5px solid var(--danger-border);border-radius:var(--radius);padding:7px 14px;font-size:13px;color:var(--danger-text)}
   .save-msg{font-size:12px;color:var(--success-text);background:var(--success-bg);padding:4px 10px;border-radius:4px;display:none;align-items:center;gap:6px}
+  .team-switcher{display:flex;align-items:center;gap:8px;padding:8px 16px;background:var(--bg2);border-bottom:0.5px solid var(--border);flex-wrap:wrap}
+  .team-switch-label{font-size:11px;color:var(--text3);white-space:nowrap}
+  .team-switch-sel{font-size:12px;padding:4px 8px;border:0.5px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text);cursor:pointer}
+  .team-switch-btn{font-size:11px;padding:4px 10px;background:var(--liferay-pale);color:var(--liferay-mid);border:0.5px solid var(--border2);border-radius:var(--radius);cursor:pointer;white-space:nowrap}
+  .team-switch-btn:hover{background:var(--liferay-mid);color:white}
   .flex-col-gap3{display:flex;flex-direction:column;gap:3px}
   .font-10-text2{font-size:10px;color:var(--text2);line-height:1.3}
   .font-11-text3{font-size:11px;color:var(--text3)}
@@ -239,6 +244,12 @@
       </div>
       <button class="btn-signout" onclick="signOut()">Sign out</button>
     </div>
+  </div>
+
+  <div id="team-switcher-bar" class="team-switcher" style="display:none">
+    <span class="team-switch-label">Active team:</span>
+    <select id="team-switch-sel" class="team-switch-sel" onchange="switchTeam(this.value)"></select>
+    <button class="team-switch-btn" onclick="addNewTeam()">+ Add team</button>
   </div>
 
   <div class="nav" id="main-nav">
@@ -535,7 +546,6 @@ const ALLOWED_USERS     = [
   'brunofalc',
   'jpince',
   'mariamuriel',
-  'esanzp',
   'matteobernazzani-liferay',
   'noemedina-lr',
 ];
@@ -690,6 +700,7 @@ function launchApp(login, name, avatar) {
   }
   applySetup();
   renderRoadmap();
+  renderTeamSwitcher();
 }
 
 function signOut() { localStorage.removeItem('avd_session'); location.reload(); }
@@ -804,6 +815,7 @@ function saveSetup() {
   setData(d);
   document.getElementById('header-team').textContent = d.setup.team||'No team set';
   renderRoadmap();
+  renderTeamSwitcher();
   flash('setup-msg');
 }
 
@@ -1606,6 +1618,75 @@ function importMultiple(e) {
     };
     r.readAsText(file);
   });
+}
+
+/* ══ TEAM SWITCHER ══ */
+function getAvailableTeams() {
+  const teams = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key.startsWith('avd-data-') && key !== 'avd-data-default') {
+      try {
+        const d = JSON.parse(localStorage.getItem(key) || '{}');
+        const team = d.setup?.team;
+        if (team) teams.push({ key, team });
+      } catch(e) {}
+    }
+  }
+  return teams;
+}
+
+function renderTeamSwitcher() {
+  const teams = getAvailableTeams();
+  const bar   = document.getElementById('team-switcher-bar');
+  const sel   = document.getElementById('team-switch-sel');
+  if (!sel) return;
+
+  if (teams.length <= 1) {
+    bar.style.display = 'none';
+    return;
+  }
+
+  bar.style.display = 'flex';
+  const currentTeam = getData().setup?.team || '';
+  sel.innerHTML = teams.map(t =>
+    `<option value="${t.team}" ${t.team === currentTeam ? 'selected' : ''}>${t.team}</option>`
+  ).join('');
+}
+
+function switchTeam(teamName) {
+  // Save current team name to switch the storageKey
+  const d = getData();
+  if (!d.setup) d.setup = {};
+  d.setup.team = teamName;
+  // Clear cache and reload with new team
+  clearCache();
+  // Find the key for the selected team
+  const key = 'avd-data-' + teamName.replace(/\s+/g,'-').toLowerCase();
+  try {
+    const newData = JSON.parse(localStorage.getItem(key) || '{}');
+    _cache = newData;
+  } catch(e) { _cache = {}; }
+  applySetup();
+  renderRoadmap();
+  document.getElementById('header-team').textContent = teamName;
+  renderTeamSwitcher();
+}
+
+function addNewTeam() {
+  const name = prompt('Enter new team name:');
+  if (!name || !name.trim()) return;
+  // Save current data first
+  const current = getData();
+  setData(current);
+  // Switch to new team (empty)
+  clearCache();
+  _cache = { setup: { team: name.trim() } };
+  setData(_cache);
+  applySetup();
+  renderRoadmap();
+  document.getElementById('header-team').textContent = name.trim();
+  renderTeamSwitcher();
 }
 
 /* ══ DASHBOARD FILTER ══ */
