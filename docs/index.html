@@ -1726,7 +1726,7 @@ function renderComments(team, checkins) {
       if (!note) return '';
       return '<div style="padding:8px 0;border-bottom:0.5px solid var(--border)">'
         + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">'
-        + '<span class="owner-pill" style="background:' + bgs[score] + ';color:' + cols[score] + ';flex-shrink:0">' + a.code + ' ' + (score||'—') + '</span>'
+        + '<span class="owner-pill" style="background:' + SCORE_BGS[score] + ';color:' + SCORE_COLS[score] + ';flex-shrink:0">' + a.code + ' ' + (score||'—') + '</span>'
         + '<span class="text-12-bold">' + a.label + '</span>'
         + '</div>'
         + '<div style="font-size:12px;color:var(--text2);line-height:1.6;white-space:pre-line">' + note + '</div>'
