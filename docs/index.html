@@ -454,62 +454,6 @@
       <div class="metric-history" id="m-ect-history"></div>
     </div>
 
-    <!-- WIP Limit -->
-    <div class="metric-block">
-      <div class="metric-header">
-        <div>
-          <div class="metric-title">WIP — Active Epics</div>
-          <div style="font-size:11px;color:var(--text3);margin-top:2px">A2 · Current number of Epics in progress vs. defined limit</div>
-        </div>
-        <span class="metric-target">Target: at or below WIP limit at all times</span>
-      </div>
-      <div class="metric-inputs">
-        <div class="metric-value-wrap">
-          <span class="metric-value-label">WIP Limit Goal</span>
-          <input type="number" class="metric-value-input" id="m-wip-limit" placeholder="—" min="0" oninput="saveMetric('wip','limit',this.value)"/>
-          <div style="margin-top:8px">
-            <div class="metric-value-label" style="margin-bottom:4px">Active Epics</div>
-            <input type="number" class="metric-value-input" id="m-wip-value" placeholder="—" min="0" style="font-size:14px" oninput="saveMetric('wip','value',this.value)"/>
-          </div>
-          <div id="m-wip-trend" style="margin-top:6px;text-align:center"></div>
-        </div>
-        <div class="metric-right">
-          <textarea class="metric-textarea" id="m-wip-comment" placeholder="Any WIP violations this iteration? What caused them?" oninput="debouncedSaveMetric('wip','comment',this.value)"></textarea>
-          <textarea class="metric-textarea" id="m-wip-action" placeholder="Action item: how will we protect the WIP limit?" oninput="debouncedSaveMetric('wip','action',this.value)"></textarea>
-        </div>
-      </div>
-      <div class="metric-history" id="m-wip-history"></div>
-    </div>
-
-    <!-- Flow Handoff -->
-    <div class="metric-block">
-      <div class="metric-header">
-        <div>
-          <div class="metric-title">Improve the Flow Handoff <span style="font-size:11px;font-weight:400;color:var(--text3)">(avg wait time)</span></div>
-          <div style="font-size:11px;color:var(--text3);margin-top:2px">A3 · Average wait time from Discovery Completion to Delivery Start</div>
-        </div>
-        <span class="metric-target">Target: reduce by 50% by end of 2026</span>
-      </div>
-      <div class="goal-field-wrap">
-        <span class="goal-field-label">Team goal:</span>
-        <input class="goal-field-input" id="m-fh-goal" placeholder="—" oninput="debouncedSaveMetricGoal('fh',this.value)"/>
-        <span class="goal-saved" id="m-fh-goal-saved" style="display:none">Saved</span>
-      </div>
-      <div class="metric-inputs">
-        <div class="metric-value-wrap">
-          <span class="metric-value-label">Current value</span>
-          <input type="number" class="metric-value-input" id="m-fh-value" placeholder="—" min="0" oninput="saveMetric('fh','value',this.value)"/>
-          <span class="metric-unit">days</span>
-          <div id="m-fh-trend" style="margin-top:6px;text-align:center"></div>
-        </div>
-        <div class="metric-right">
-          <textarea class="metric-textarea" id="m-fh-comment" placeholder="What is causing the handoff delay? Any bottlenecks?" oninput="debouncedSaveMetric('fh','comment',this.value)"></textarea>
-          <textarea class="metric-textarea" id="m-fh-action" placeholder="Action item: how will we reduce the wait time?" oninput="debouncedSaveMetric('fh','action',this.value)"></textarea>
-        </div>
-      </div>
-      <div class="metric-history" id="m-fh-history"></div>
-    </div>
-
     <div class="save-bar">
       <button class="btn-primary" onclick="saveMetrics()">Save flow metrics</button>
       <button class="btn-ghost" onclick="exportData()" style="margin-left:auto">Export JSON ↓</button>
