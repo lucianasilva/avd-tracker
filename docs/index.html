@@ -669,13 +669,15 @@ function setData(d) {
 }
 function clearCache() { _cache = null; }
 function formatDate(dateVal, opts) {
-  // Handle both string '2026-07-24T...' and Date objects
+  // Format date directly from string components — no timezone conversion
   const str = (dateVal instanceof Date) ? dateVal.toISOString() : (dateVal || '');
   const d = str.slice(0,10);
   if (!d || d === '0000-00-00') return '—';
   const [y, m, day] = d.split('-').map(Number);
-  const utcDate = new Date(Date.UTC(y, m-1, day));
-  return utcDate.toLocaleDateString('en-US', opts || {month:'short', day:'numeric'});
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const DAYS   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  if (opts?.year) return MONTHS[m-1] + ' ' + day + ', ' + y;
+  return MONTHS[m-1] + ' ' + day;
 }
 
 function formatDateLong(dateVal) {
@@ -683,8 +685,11 @@ function formatDateLong(dateVal) {
   const d = str.slice(0,10);
   if (!d || d === '0000-00-00') return '—';
   const [y, m, day] = d.split('-').map(Number);
-  const utcDate = new Date(Date.UTC(y, m-1, day));
-  return utcDate.toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric', year:'numeric'});
+  const MONTHS_L = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const DAYS_L   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  // Calculate day of week
+  const dt = new Date(Date.UTC(y, m-1, day));
+  return DAYS_L[dt.getUTCDay()] + ', ' + ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m-1] + ' ' + day + ', ' + y;
 }
 
 function flash(id)  { const el=document.getElementById(id); if(!el) return; el.style.display='flex'; setTimeout(()=>el.style.display='none',2500); }
