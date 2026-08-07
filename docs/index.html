@@ -1249,7 +1249,7 @@ function renderDashboard(data) {
       const barHeight = 60;
       const bars = vals.map(v => {
         const h     = Math.max(6, Math.round(v.val / maxVal * barHeight));
-        const dt    = formatDate(v.date.slice(0,10));
+        const dt    = formatDate(v.date);
         const bad   = def.higherIsBad && def.target && v.val > def.target;
         const color = bad ? '#E24B4A' : '#639922';
         const bgColor = bad ? '#FCEBEB' : '#EAF3DE';
