@@ -668,18 +668,20 @@ function setData(d) {
   localStorage.setItem(storageKey(), JSON.stringify(d));
 }
 function clearCache() { _cache = null; }
-function formatDate(dateStr, opts) {
-  // Parse date without timezone conversion to avoid off-by-one day errors
-  const d = dateStr?.slice(0,10);
-  if (!d) return '—';
+function formatDate(dateVal, opts) {
+  // Handle both string '2026-07-24T...' and Date objects
+  const str = (dateVal instanceof Date) ? dateVal.toISOString() : (dateVal || '');
+  const d = str.slice(0,10);
+  if (!d || d === '0000-00-00') return '—';
   const [y, m, day] = d.split('-').map(Number);
   const utcDate = new Date(Date.UTC(y, m-1, day));
   return utcDate.toLocaleDateString('en-US', opts || {month:'short', day:'numeric'});
 }
 
-function formatDateLong(dateStr) {
-  const d = dateStr?.slice(0,10);
-  if (!d) return '—';
+function formatDateLong(dateVal) {
+  const str = (dateVal instanceof Date) ? dateVal.toISOString() : (dateVal || '');
+  const d = str.slice(0,10);
+  if (!d || d === '0000-00-00') return '—';
   const [y, m, day] = d.split('-').map(Number);
   const utcDate = new Date(Date.UTC(y, m-1, day));
   return utcDate.toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric', year:'numeric'});
@@ -1236,8 +1238,8 @@ function renderDashboard(data) {
     const teamCharts = Object.entries(byTeam).map(([team, entries]) => {
       const vals = entries
         .filter(e => e.metrics?.[def.id]?.value !== undefined && e.metrics[def.id].value !== '')
-        .map(e => ({ date: new Date(e.date), val: parseFloat(e.metrics[def.id].value), goal: e.metrics?.[def.id]?.goal || e.metrics?.[def.id]?.limit }))
-        .sort((a,b) => a.date - b.date);
+        .map(e => ({ date: e.date, val: parseFloat(e.metrics[def.id].value), goal: e.metrics?.[def.id]?.goal || e.metrics?.[def.id]?.limit }))
+        .sort((a,b) => new Date(a.date) - new Date(b.date));
 
       if (!vals.length) return '';
 
