@@ -668,6 +668,23 @@ function setData(d) {
   localStorage.setItem(storageKey(), JSON.stringify(d));
 }
 function clearCache() { _cache = null; }
+function formatDate(dateStr, opts) {
+  // Parse date without timezone conversion to avoid off-by-one day errors
+  const d = dateStr?.slice(0,10);
+  if (!d) return '—';
+  const [y, m, day] = d.split('-').map(Number);
+  const utcDate = new Date(Date.UTC(y, m-1, day));
+  return utcDate.toLocaleDateString('en-US', opts || {month:'short', day:'numeric'});
+}
+
+function formatDateLong(dateStr) {
+  const d = dateStr?.slice(0,10);
+  if (!d) return '—';
+  const [y, m, day] = d.split('-').map(Number);
+  const utcDate = new Date(Date.UTC(y, m-1, day));
+  return utcDate.toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric', year:'numeric'});
+}
+
 function flash(id)  { const el=document.getElementById(id); if(!el) return; el.style.display='flex'; setTimeout(()=>el.style.display='none',2500); }
 
 function debounce(fn, delay=400) {
@@ -1072,7 +1089,7 @@ function renderHistory() {
   const METRIC_UNITS  = { sct:'days', ect:'days', fh:'days', wip:'epics' };
 
   el.innerHTML = h.map(entry => {
-    const dt = new Date(entry.date).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+    const dt = formatDateLong(entry.date);
 
     
     const scoreRows = ACTIONS.map(a => {
@@ -1182,7 +1199,7 @@ function renderDashboard(data) {
 
   
   document.getElementById('dash-grid').innerHTML = Object.values(latest).map(c => {
-    const dt     = new Date(c.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    const dt     = formatDate(c.date, {month:'short',day:'numeric',year:'numeric'});
     const scores = c.scores||{};
     const sc     = ACTIONS.map(a=>parseInt(scores[a.id]||0)).filter(s=>s>0);
     const avg    = sc.length?(sc.reduce((a,b)=>a+b,0)/sc.length).toFixed(1):'—';
@@ -1201,7 +1218,7 @@ function renderDashboard(data) {
     const chips = entries.map(e => {
       const sc  = ACTIONS.map(a=>parseInt(e.scores?.[a.id]||0)).filter(s=>s>0);
       const avg = sc.length?(sc.reduce((a,b)=>a+b,0)/sc.length).toFixed(1):'—';
-      const dt  = new Date(e.date).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+      const dt  = formatDate(e.date);
       return`<span class="score-chip score-chip-${Math.round(parseFloat(avg)||0)}" title="${dt}: avg ${avg}">${dt}: ${avg}</span>`;
     }).join('');
     return`<div class="trend-row"><span class="trend-team">${team}</span><div class="trend-scores">${chips}</div></div>`;
@@ -1230,7 +1247,7 @@ function renderDashboard(data) {
       const barHeight = 60;
       const bars = vals.map(v => {
         const h     = Math.max(6, Math.round(v.val / maxVal * barHeight));
-        const dt    = v.date.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+        const dt    = formatDate(v.date.slice(0,10));
         const bad   = def.higherIsBad && def.target && v.val > def.target;
         const color = bad ? '#E24B4A' : '#639922';
         const bgColor = bad ? '#FCEBEB' : '#EAF3DE';
@@ -1322,7 +1339,9 @@ function renderMetrics() {
   
   const metricsDateEl = document.getElementById('metrics-date');
   if (metricsDateEl) {
-    metricsDateEl.value = m.metricsDate || new Date().toISOString().slice(0,10);
+    // Always default to today — EPM can change if needed
+    metricsDateEl.value = new Date().toISOString().slice(0,10);
+    if (d.metrics) d.metrics.metricsDate = metricsDateEl.value;
   }
 
   
@@ -1385,7 +1404,7 @@ function renderMetricHistory(id, history) {
   const bars = entries.map((h,i) => {
     const v   = vals[i];
     const ht  = Math.max(4, Math.round(v/max*36));
-    const dt  = new Date(h.date).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    const dt  = formatDate(h.date);
     return `<div style="display:flex;flex-direction:column;align-items:center;gap:3px;min-width:36px">
       <div style="font-size:11px;font-weight:500;color:var(--text2)">${v}</div>
       <div class="metric-bar" style="height:${ht}px;width:28px;border-radius:3px 3px 0 0" title="${dt}: ${v}"></div>
@@ -1455,11 +1474,14 @@ function saveMetrics() {
 
   setData(d);
   
-  if (d.metrics) d.metrics.metricsDate = new Date().toISOString().slice(0,10);
+  // Reset date to today and update visible input
+  const todayStr = new Date().toISOString().slice(0,10);
+  if (d.metrics) d.metrics.metricsDate = todayStr;
   setData(d);
+  const metricsDateEl = document.getElementById('metrics-date');
+  if (metricsDateEl) metricsDateEl.value = todayStr;
   renderMetrics();
   flash('metrics-msg');
-  
   promptEmailExport(getData());
 }
 
@@ -1662,7 +1684,7 @@ function renderComments(team, checkins) {
   const allEntries = sorted.map(entry => {
     const notes  = entry.notes  || {};
     const scores = entry.scores || {};
-    const dt = new Date(entry.date).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+    const dt = formatDateLong(entry.date);
 
     const actionRows = ACTIONS.map(a => {
       const note  = notes[a.id]?.trim();
