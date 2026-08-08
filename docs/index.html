@@ -208,6 +208,9 @@
   .text-13-bold{font-size:13px;font-weight:500;color:var(--text)}
   .section-gap{margin-bottom:20px}
   .pad-section{padding:0 14px}
+  .info-note{margin-top:10px;padding:10px 12px;background:var(--bg2);border-radius:var(--radius);font-size:12px;color:var(--text2);line-height:1.6}
+  .date-field-wrap{display:flex;align-items:center;gap:10px}
+  .date-input{font-size:13px;padding:6px 10px;border:0.5px solid var(--border);border-radius:var(--radius);background:var(--bg);color:var(--text)}
 </style>
 </head>
 <body>
@@ -283,7 +286,7 @@
         <span id="setup-msg" class="save-msg" >Saved.</span>
       </div>
     </div>
-    <div style="margin-top:10px;padding:10px 12px;background:var(--bg2);border-radius:var(--radius);font-size:12px;color:var(--text2);line-height:1.6">
+    <div class="info-note">
       <strong>Switching computers?</strong> Use the button below to restore your previously exported data on this device.
     </div>
     <div class="save-bar" style="border:none;padding:8px 0 0;margin-top:0">
@@ -311,7 +314,7 @@
     <div class="section-gap">
       <div class="checkin-title">Check-in date</div>
       <div style="display:flex;align-items:center;gap:10px">
-        <input type="date" id="ci-date" style="font-size:13px;padding:6px 10px;border:0.5px solid var(--border);border-radius:var(--radius);background:var(--bg);color:var(--text)" oninput="saveCiDate(this.value)"/>
+        <input type="date" id="ci-date" class="date-input" oninput="saveCiDate(this.value)"/>
         <span style="font-size:12px;color:var(--text3)">Date of this bi-weekly check-in</span>
       </div>
     </div>
@@ -396,7 +399,7 @@
     <div class="section-gap">
       <div class="checkin-title">Metrics date</div>
       <div style="display:flex;align-items:center;gap:10px">
-        <input type="date" id="metrics-date" style="font-size:13px;padding:6px 10px;border:0.5px solid var(--border);border-radius:var(--radius);background:var(--bg);color:var(--text)" oninput="saveMetricsDate(this.value)"/>
+        <input type="date" id="metrics-date" class="date-input" oninput="saveMetricsDate(this.value)"/>
         <span style="font-size:12px;color:var(--text3)">Date of this flow metrics update</span>
       </div>
     </div>
@@ -459,7 +462,7 @@
       <button class="btn-ghost" onclick="exportData()" style="margin-left:auto">Export JSON ↓</button>
       <span id="metrics-msg" class="save-msg" >Saved.</span>
     </div>
-    <div style="margin-top:10px;padding:10px 12px;background:var(--bg2);border-radius:var(--radius);font-size:12px;color:var(--text2);line-height:1.6">
+    <div class="info-note">
       ✅ Done with your bi-weekly update? Click <strong>Save flow metrics</strong> — your JSON will download automatically and instructions will appear to send it to Luciana Silva on Slack.
     </div>
   </div>
@@ -669,7 +672,7 @@ function setData(d) {
 }
 function clearCache() { _cache = null; }
 function formatDate(dateVal, opts) {
-  // Format date directly from string components — no timezone conversion
+  
   const str = (dateVal instanceof Date) ? dateVal.toISOString() : (dateVal || '');
   const d = str.slice(0,10);
   if (!d || d === '0000-00-00') return '—';
@@ -687,7 +690,7 @@ function formatDateLong(dateVal) {
   const [y, m, day] = d.split('-').map(Number);
   const MONTHS_L = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   const DAYS_L   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  // Calculate day of week
+  
   const dt = new Date(Date.UTC(y, m-1, day));
   return DAYS_L[dt.getUTCDay()] + ', ' + ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m-1] + ' ' + day + ', ' + y;
 }
@@ -907,17 +910,20 @@ function toggleWeek(weekId) {
 }
 
 function saveWeekDate(week, val) {
-  
   const d = getData();
   if (!d.checks) d.checks = {};
   if (!d.checks.dates) d.checks.dates = {};
-  ACTIONS.forEach(a => {
-    a.milestones.forEach((m, mi) => {
-      if (m.week === week) d.checks.dates[dk(a.id,mi)] = val;
-    });
-  });
+  ACTIONS.forEach(a => a.milestones.forEach((m, mi) => {
+    if (m.week === week) d.checks.dates[dk(a.id,mi)] = val;
+  }));
   setData(d);
-  renderRoadmap();
+  document.querySelectorAll('input.ms-date').forEach(el => {
+    const onch = el.getAttribute('onchange') || '';
+    const isThisWeek = ACTIONS.some(a => a.milestones.some((m, mi) =>
+      m.week === week && onch.includes("'"+a.id+"'") && onch.includes(','+mi+',')
+    ));
+    if (isThisWeek) el.value = val;
+  });
 }
 
 function toggleAction(id) {
@@ -1052,12 +1058,12 @@ function setScore(id,val){
 function setNote(id,val){const d=getData();if(!d.checks)d.checks={};if(!d.checks.scoreNotes)d.checks.scoreNotes={};d.checks.scoreNotes[id]=val;setData(d);}
 
 async function saveCheckin() {
-  const d=getData();
+  const d=getData(), commits=d.checks?.commits||{};
   if(!d.history) d.history=[];
   const total=ACTIONS.reduce((s,a)=>s+a.milestones.reduce((ss,m)=>ss+m.commits.length,0),0);
-  const done=ACTIONS.reduce((s,a)=>s+a.milestones.reduce((ss,m,mi)=>ss+m.commits.filter((_,ci)=>(d.checks?.commits||{})[ck(a.id,mi,ci)]).length,0),0);
+  const done=ACTIONS.reduce((s,a)=>s+a.milestones.reduce((ss,m,mi)=>ss+m.commits.filter((_,ci)=>commits[ck(a.id,mi,ci)]).length,0),0);
   const ciDate = d.checks?.ciDate || new Date().toISOString().slice(0,10);
-  const entry={date:new Date(ciDate).toISOString(),scores:{...(d.checks?.scores||{})},notes:{...(d.checks?.scoreNotes||{})},progress:total?Math.round(done/total*100):0,metrics:{...(d.metrics||{})},checkinDate:ciDate};
+  const entry={date:new Date(ciDate+'T12:00:00.000Z').toISOString(),scores:{...(d.checks?.scores||{})},notes:{...(d.checks?.scoreNotes||{})},progress:total?Math.round(done/total*100):0,metrics:{...(d.metrics||{})},checkinDate:ciDate};
   
   const entryDay = entry.date.slice(0,10);
   d.history = d.history.filter(h => h.date?.slice(0,10) !== entryDay);
@@ -1156,7 +1162,7 @@ async function loadDashboard() {
         const team = d.setup?.team;
         if (team && d.history?.length) {
           d.history.forEach(h => {
-            // Dedup by team + day (ignore time component)
+            
             const dayKey = team + '|' + (h.date || '').slice(0,10);
             if (!seenKeys.has(dayKey)) {
               seenKeys.add(dayKey);
@@ -1352,7 +1358,7 @@ function renderMetrics() {
   
   const metricsDateEl = document.getElementById('metrics-date');
   if (metricsDateEl) {
-    // Always default to today — EPM can change if needed
+    
     metricsDateEl.value = new Date().toISOString().slice(0,10);
     if (d.metrics) d.metrics.metricsDate = metricsDateEl.value;
   }
@@ -1466,7 +1472,7 @@ function saveMetrics() {
   if (!entry) {
     const total = ACTIONS.reduce((s,a)=>s+a.milestones.reduce((ss,m)=>ss+m.commits.length,0),0);
     const done  = ACTIONS.reduce((s,a)=>s+a.milestones.reduce((ss,m,mi)=>ss+m.commits.filter((_,ci)=>(d.checks?.commits||{})[ck(a.id,mi,ci)]).length,0),0);
-    entry = { date: new Date(metricsDate).toISOString(), scores: {...(d.checks?.scores||{})},
+    entry = { date: new Date(metricsDate+'T12:00:00.000Z').toISOString(), scores: {...(d.checks?.scores||{})},
       notes: {...(d.checks?.scoreNotes||{})}, progress: total?Math.round(done/total*100):0,
       metrics: {} };
     d.history.unshift(entry);
@@ -1487,7 +1493,7 @@ function saveMetrics() {
 
   setData(d);
   
-  // Reset date to today and update visible input
+  
   const todayStr = new Date().toISOString().slice(0,10);
   if (d.metrics) d.metrics.metricsDate = todayStr;
   setData(d);
@@ -1634,13 +1640,13 @@ function renderTeamSwitcher() {
 }
 
 function switchTeam(teamName) {
-  // Save current team name to switch the storageKey
+  
   const d = getData();
   if (!d.setup) d.setup = {};
   d.setup.team = teamName;
-  // Clear cache and reload with new team
+  
   clearCache();
-  // Find the key for the selected team
+  
   const key = 'avd-data-' + teamName.replace(/\s+/g,'-').toLowerCase();
   try {
     const newData = JSON.parse(localStorage.getItem(key) || '{}');
@@ -1655,10 +1661,10 @@ function switchTeam(teamName) {
 function addNewTeam() {
   const name = prompt('Enter new team name:');
   if (!name || !name.trim()) return;
-  // Save current data first
+  
   const current = getData();
   setData(current);
-  // Switch to new team (empty)
+  
   clearCache();
   _cache = { setup: { team: name.trim() } };
   setData(_cache);
