@@ -169,36 +169,10 @@
   .trend-scores{display:flex;gap:3px}
   .no-data{font-size:12px;color:var(--text3);font-style:italic}
 
-  .goal-field-wrap{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
-  .goal-field-label{font-size:11px;font-weight:500;color:var(--text2)}
-  .goal-field-input{width:160px;font-size:14px;font-weight:500;padding:8px 12px;border:0.5px solid var(--border);border-radius:var(--radius);background:var(--bg);color:var(--text);text-align:center}
   .goal-field-input:focus{border-color:var(--border2)}
-  .goal-saved{font-size:10px;color:var(--success-text);margin-top:2px;text-align:center}
 
   /* Flow Metrics */
-  .metric-block{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:16px 20px;margin-bottom:12px}
-  .metric-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px}
-  .metric-title{font-size:14px;font-weight:500}
-  .metric-target{font-size:11px;color:var(--text3);background:var(--bg2);padding:3px 10px;border-radius:20px}
-  .metric-inputs{display:grid;grid-template-columns:140px 1fr;gap:12px;align-items:start}
-  .metric-value-wrap{display:flex;flex-direction:column;gap:6px}
-  .metric-value-label{font-size:11px;color:var(--text2);font-weight:500}
-  .metric-value-input{width:100%;font-size:18px;font-weight:500;padding:8px 12px;border:0.5px solid var(--border);border-radius:var(--radius);background:var(--bg);color:var(--text);text-align:center}
   .metric-value-input:focus{border-color:var(--border2)}
-  .metric-unit{font-size:11px;color:var(--text3);text-align:center;margin-top:2px}
-  .metric-right{display:flex;flex-direction:column;gap:8px}
-  .metric-textarea{width:100%;min-height:52px;font-size:12px}
-  .trend-indicator{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500;padding:3px 10px;border-radius:20px}
-  .trend-up-bad{background:#FCEBEB;color:#A32D2D}
-  .trend-down-good{background:#EAF3DE;color:#27500A}
-  .trend-stable{background:#FAEEDA;color:#633806}
-  .trend-new{background:var(--bg2);color:var(--text3)}
-  .metric-history{margin-top:10px;padding-top:10px;border-top:0.5px solid var(--border)}
-  .metric-history-title{font-size:11px;font-weight:500;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em}
-  .metric-history-row{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text2);padding:3px 0}
-  .metric-chart{display:flex;align-items:flex-end;gap:4px;height:88px;margin-top:8px}
-  .metric-bar{background:var(--liferay-light);border:0.5px solid var(--liferay-pale);border-radius:3px 3px 0 0;min-width:28px;transition:height .3s}
-  .metric-bar-label{font-size:10px;color:var(--text3);text-align:center;margin-top:3px}
 
   .flex-col-gap3{display:flex;flex-direction:column;gap:3px}
   .text-10-muted{font-size:10px;color:var(--text3)}
@@ -259,27 +233,16 @@
     <button class="nav-btn active" onclick="showView('setup',this)">Team Setup</button>
     <button class="nav-btn" onclick="showView('roadmap',this)">Implementation Roadmap</button>
     <button class="nav-btn" onclick="showView('checkin',this)">Bi-weekly Check-in</button>
-    <button class="nav-btn" onclick="showView('metrics',this)">Flow Metrics</button>
-    <button class="nav-btn" onclick="showView('history',this)">History</button>
+
     <button class="nav-btn admin-tab" id="admin-tab" style="display:none" onclick="showView('admin',this)">📊 Admin Dashboard</button>
   </div>
 
   <!-- SETUP -->
   <div class="view active" id="view-setup">
     <div class="card">
-      <div class="field-grid">
-        <div>
-          <div class="field-row"><span class="field-label">Product Team</span><input class="field-input" id="f-team" placeholder="e.g. Headless"/></div>
-          <div class="field-row"><span class="field-label">Team Lead (TL)</span><input class="field-input" id="f-tl" placeholder="@name"/></div>
-          <div class="field-row"><span class="field-label">Product Manager</span><input class="field-input" id="f-pm" placeholder="@name or N/A"/></div>
-          <div class="field-row"><span class="field-label">Product Owner</span><input class="field-input" id="f-po" placeholder="@name"/></div>
-        </div>
-        <div>
-          <div class="field-row"><span class="field-label">Eng. PM (EPM)</span><input class="field-input" id="f-epm" placeholder="@name"/></div>
-          <div class="field-row"><span class="field-label">Product Designer</span><input class="field-input" id="f-pd" placeholder="@name or N/A"/></div>
-          <div class="field-row"><span class="field-label">Pilot Initiative</span><input class="field-input" id="f-init" placeholder="LCD-XXXXX — name"/></div>
-          <div class="field-row"><span class="field-label">Kick-off Date</span><input class="field-input" id="f-kickoff" type="date"/></div>
-        </div>
+      <div class="field-row" style="max-width:320px">
+        <span class="field-label">Product Team</span>
+        <input class="field-input" id="f-team" placeholder="e.g. Headless" style="font-size:15px;padding:8px 12px"/>
       </div>
       <div class="save-bar">
         <button class="btn-primary" onclick="saveSetup()">Save team setup</button>
@@ -349,10 +312,42 @@
     </div>
   </div>
 
-  <!-- HISTORY -->
-  <div class="view" id="view-history">
-    <div style="font-size:13px;color:var(--text2);margin-bottom:12px">All saved bi-weekly check-ins for this team, newest first.</div>
-    <div id="history-list"></div>
+  <!-- ADMIN DASHBOARD -->
+  <div class="view" id="view-admin">
+    <div class="sync-bar">
+      <button class="btn-primary" onclick="loadDashboard()">Refresh dashboard</button>
+      <select id="team-filter" class="score-sel" style="min-width:180px;font-size:13px" onchange="filterDashboard(this.value)">
+        <option value="all">All teams</option>
+      </select>
+      <label class="btn-ghost" style="display:inline-flex;align-items:center;gap:6px;cursor:pointer">
+        Import JSONs ↑
+        <input type="file" accept=".json" multiple style="display:none" onchange="importMultiple(event)"/>
+      </label>
+      <span id="sync-spinner" style="display:none"><span class="loading-spinner"></span></span>
+      <span class="sync-time" id="sync-time"></span>
+    </div>
+
+    <div style="font-size:13px;font-weight:500;margin-bottom:12px">Latest check-in</div>
+    <div id="dash-grid" class="dash-grid">
+      <div class="dash-empty">Click "Refresh dashboard" to load data from all teams.</div>
+    </div>
+
+    <div style="font-size:13px;font-weight:500;margin-bottom:12px;margin-top:20px">Adoption score history</div>
+    <div class="card" id="dash-trend">
+      <div class="no-data">No history data yet.</div>
+    </div>
+
+    <div style="font-size:13px;font-weight:500;margin-bottom:12px;margin-top:20px">Flow metrics evolution</div>
+    <div class="card" id="dash-metrics">
+      <div class="no-data">No metrics data yet.</div>
+    </div>
+
+    <div id="dash-comments-section" style="display:none">
+      <div style="font-size:13px;font-weight:500;margin-bottom:12px;margin-top:20px">Latest check-in comments</div>
+      <div class="card" id="dash-comments">
+        <div class="no-data">No comments yet.</div>
+      </div>
+    </div>
   </div>
 
   <!-- ADMIN DASHBOARD -->
@@ -393,77 +388,79 @@
     </div>
   </div>
 
-  <!-- FLOW METRICS -->
-  <div class="view" id="view-metrics">
-    <div style="font-size:13px;color:var(--text2);margin-bottom:12px">Track your team's key flow metrics every bi-weekly check-in. The dashboard will show trends over time.</div>
-    <div class="section-gap">
-      <div class="checkin-title">Metrics date</div>
-      <div style="display:flex;align-items:center;gap:10px">
-        <input type="date" id="metrics-date" class="date-input" oninput="saveMetricsDate(this.value)"/>
-        <span style="font-size:12px;color:var(--text3)">Date of this flow metrics update</span>
-      </div>
+  <!-- ADMIN DASHBOARD -->
+  <div class="view" id="view-admin">
+    <div class="sync-bar">
+      <button class="btn-primary" onclick="loadDashboard()">Refresh dashboard</button>
+      <select id="team-filter" class="score-sel" style="min-width:180px;font-size:13px" onchange="filterDashboard(this.value)">
+        <option value="all">All teams</option>
+      </select>
+      <label class="btn-ghost" style="display:inline-flex;align-items:center;gap:6px;cursor:pointer">
+        Import JSONs ↑
+        <input type="file" accept=".json" multiple style="display:none" onchange="importMultiple(event)"/>
+      </label>
+      <span id="sync-spinner" style="display:none"><span class="loading-spinner"></span></span>
+      <span class="sync-time" id="sync-time"></span>
     </div>
 
-    <!-- Story Cycle Time -->
-    <div class="metric-block">
-      <div class="metric-header">
-        <div>
-          <div class="metric-title">Story Cycle Time <span style="font-size:11px;font-weight:400;color:var(--text3)">(85th percentile)</span></div>
-          <div style="font-size:11px;color:var(--text3);margin-top:2px">A5 · Time from "In Development" to "Closed"</div>
-        </div>
-        <span class="metric-target">Target: ≤ 15 days by end of 2026</span>
-      </div>
-      <div class="metric-inputs">
-        <div class="metric-value-wrap">
-          <span class="metric-value-label">Current value</span>
-          <input type="number" class="metric-value-input" id="m-sct-value" placeholder="—" min="0" oninput="saveMetric('sct','value',this.value)"/>
-          <span class="metric-unit">days</span>
-          <div id="m-sct-trend" style="margin-top:6px;text-align:center"></div>
-        </div>
-        <div class="metric-right">
-          <textarea class="metric-textarea" id="m-sct-comment" placeholder="What is driving this number? Any outliers?" oninput="debouncedSaveMetric('sct','comment',this.value)"></textarea>
-          <textarea class="metric-textarea" id="m-sct-action" placeholder="Action item: what will we do to improve?" oninput="debouncedSaveMetric('sct','action',this.value)"></textarea>
-        </div>
-      </div>
-      <div class="metric-history" id="m-sct-history"></div>
+    <div style="font-size:13px;font-weight:500;margin-bottom:12px">Latest check-in</div>
+    <div id="dash-grid" class="dash-grid">
+      <div class="dash-empty">Click "Refresh dashboard" to load data from all teams.</div>
     </div>
 
-    <!-- Epic Full Cycle Time -->
-    <div class="metric-block">
-      <div class="metric-header">
-        <div>
-          <div class="metric-title">Epic Full Cycle Time <span style="font-size:11px;font-weight:400;color:var(--text3)">(85th percentile)</span></div>
-          <div style="font-size:11px;color:var(--text3);margin-top:2px">A7 · Time from Epic creation to "Closed"</div>
-        </div>
-        <span class="metric-target">Target: reduce by 50% by end of 2026</span>
-      </div>
-      <div class="goal-field-wrap">
-        <span class="goal-field-label">Team goal:</span>
-        <input class="goal-field-input" id="m-ect-goal" placeholder="—" oninput="debouncedSaveMetricGoal('ect',this.value)"/>
-        <span class="goal-saved" id="m-ect-goal-saved" style="display:none">Saved</span>
-      </div>
-      <div class="metric-inputs">
-        <div class="metric-value-wrap">
-          <span class="metric-value-label">Current value</span>
-          <input type="number" class="metric-value-input" id="m-ect-value" placeholder="—" min="0" oninput="saveMetric('ect','value',this.value)"/>
-          <span class="metric-unit">days</span>
-          <div id="m-ect-trend" style="margin-top:6px;text-align:center"></div>
-        </div>
-        <div class="metric-right">
-          <textarea class="metric-textarea" id="m-ect-comment" placeholder="What is driving this number? Any blockers?" oninput="debouncedSaveMetric('ect','comment',this.value)"></textarea>
-          <textarea class="metric-textarea" id="m-ect-action" placeholder="Action item: what will we do to improve?" oninput="debouncedSaveMetric('ect','action',this.value)"></textarea>
-        </div>
-      </div>
-      <div class="metric-history" id="m-ect-history"></div>
+    <div style="font-size:13px;font-weight:500;margin-bottom:12px;margin-top:20px">Adoption score history</div>
+    <div class="card" id="dash-trend">
+      <div class="no-data">No history data yet.</div>
     </div>
 
-    <div class="save-bar">
-      <button class="btn-primary" onclick="saveMetrics()">Save flow metrics</button>
-      <button class="btn-ghost" onclick="exportData()" style="margin-left:auto">Export JSON ↓</button>
-      <span id="metrics-msg" class="save-msg" >Saved.</span>
+    <div style="font-size:13px;font-weight:500;margin-bottom:12px;margin-top:20px">Flow metrics evolution</div>
+    <div class="card" id="dash-metrics">
+      <div class="no-data">No metrics data yet.</div>
     </div>
-    <div class="info-note">
-      ✅ Done with your bi-weekly update? Click <strong>Save flow metrics</strong> — your JSON will download automatically and instructions will appear to send it to Luciana Silva on Slack.
+
+    <div id="dash-comments-section" style="display:none">
+      <div style="font-size:13px;font-weight:500;margin-bottom:12px;margin-top:20px">Latest check-in comments</div>
+      <div class="card" id="dash-comments">
+        <div class="no-data">No comments yet.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN DASHBOARD -->
+  <div class="view" id="view-admin">
+    <div class="sync-bar">
+      <button class="btn-primary" onclick="loadDashboard()">Refresh dashboard</button>
+      <select id="team-filter" class="score-sel" style="min-width:180px;font-size:13px" onchange="filterDashboard(this.value)">
+        <option value="all">All teams</option>
+      </select>
+      <label class="btn-ghost" style="display:inline-flex;align-items:center;gap:6px;cursor:pointer">
+        Import JSONs ↑
+        <input type="file" accept=".json" multiple style="display:none" onchange="importMultiple(event)"/>
+      </label>
+      <span id="sync-spinner" style="display:none"><span class="loading-spinner"></span></span>
+      <span class="sync-time" id="sync-time"></span>
+    </div>
+
+    <div style="font-size:13px;font-weight:500;margin-bottom:12px">Latest check-in</div>
+    <div id="dash-grid" class="dash-grid">
+      <div class="dash-empty">Click "Refresh dashboard" to load data from all teams.</div>
+    </div>
+
+    <div style="font-size:13px;font-weight:500;margin-bottom:12px;margin-top:20px">Adoption score history</div>
+    <div class="card" id="dash-trend">
+      <div class="no-data">No history data yet.</div>
+    </div>
+
+    <div style="font-size:13px;font-weight:500;margin-bottom:12px;margin-top:20px">Flow metrics evolution</div>
+    <div class="card" id="dash-metrics">
+      <div class="no-data">No metrics data yet.</div>
+    </div>
+
+    <div id="dash-comments-section" style="display:none">
+      <div style="font-size:13px;font-weight:500;margin-bottom:12px;margin-top:20px">Latest check-in comments</div>
+      <div class="card" id="dash-comments">
+        <div class="no-data">No comments yet.</div>
+      </div>
     </div>
   </div>
 
@@ -706,51 +703,6 @@ const debouncedSetNote    = debounce((id, value)        => setNote(id, value));
 const debouncedSaveMetricGoal = debounce((id, value)    => saveMetricGoal(id, value));
 
 /* ══ EXPORT & SLACK ══ */
-function promptEmailExport(d) {
-  const team = d.setup?.team || 'Unknown Team';
-  const date = new Date().toISOString().slice(0,10);
-  const json = JSON.stringify(d, null, 2);
-
-  
-  const blob = new Blob([json], { type: 'application/json' });
-  const a    = document.createElement('a');
-  a.href     = URL.createObjectURL(blob);
-  a.download = 'avd-' + team.replace(/\s+/g,'-').toLowerCase() + '-' + date + '.json';
-  a.click();
-
-  
-  navigator.clipboard.writeText(json).catch(() => {});
-
-  
-  showSlackModal(team, date);
-}
-
-function closeSlackModal(){var m=document.getElementById("slack-modal");if(m)m.remove();}
-function showSlackModal(team, date) {
-  const existing = document.getElementById('slack-modal');
-  if (existing) existing.remove();
-  const filename = 'avd-' + team.replace(/\s+/g,'-').toLowerCase() + '-' + date + '.json';
-  const modal = document.createElement('div');
-  modal.id = 'slack-modal';
-  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px';
-  const inner = document.createElement('div');
-  inner.style.cssText = 'background:var(--bg);border-radius:var(--radius-lg);padding:28px 32px;max-width:480px;width:100%;border:0.5px solid var(--border2)';
-  inner.innerHTML = '<div style="font-size:16px;font-weight:500;color:var(--text);margin-bottom:6px">Check-in saved!</div>'
-    + '<div style="font-size:13px;color:var(--text2);margin-bottom:20px;line-height:1.6">Your JSON file has been downloaded. Please send it to <strong>Luciana Silva</strong> on Slack:</div>'
-    + '<ol style="font-size:13px;color:var(--text2);line-height:2.2;padding-left:20px;margin-bottom:20px">'
-    + '<li>Open Slack and go to <strong>@lucianasilva</strong></li>'
-    + '<li>Click the <strong>+</strong> button to attach a file</li>'
-    + '<li>Select the file: <code style="background:var(--bg2);padding:1px 6px;border-radius:3px;font-size:11px">' + filename + '</code></li>'
-    + '<li>Send the message</li>'
-    + '</ol>'
-    + '<div style="display:flex;justify-content:flex-end">'
-    + '<button id="slack-close-btn" style="background:var(--liferay-mid);color:white;border:none;border-radius:var(--radius);padding:8px 20px;font-size:13px;font-weight:500;cursor:pointer">Got it!</button>'
-    + '</div>';
-  modal.appendChild(inner);
-  document.body.appendChild(modal);
-  document.getElementById('slack-close-btn').addEventListener('click', closeSlackModal);
-  modal.addEventListener('click', function(e) { if(e.target===modal) closeSlackModal(); });
-}
 
 /* ══ NAV ══ */
 function showView(v, btn) {
@@ -759,7 +711,7 @@ function showView(v, btn) {
   document.getElementById('view-'+v).classList.add('active');
   if(btn) btn.classList.add('active');
   if(v==='checkin') renderCheckin();
-  if(v==='history') renderHistory();
+
   if(v==='roadmap') renderRoadmap();
   if(v==='admin')   loadDashboard();
   if(v==='metrics')  renderMetrics();
@@ -768,20 +720,16 @@ function showView(v, btn) {
 /* ══ SETUP ══ */
 function applySetup() {
   const s = getData().setup||{};
-  ['team','tl','pm','po','epm','pd','init','kickoff'].forEach(f=>{
-    const el=document.getElementById('f-'+f);
-    if(el&&s[f]) el.value=s[f];
-  });
+  const teamEl = document.getElementById('f-team');
+  if (teamEl && s.team) teamEl.value = s.team;
   document.getElementById('header-team').textContent = s.team||'No team set';
 }
 
 function saveSetup() {
   const d=getData();
   if(!d.setup) d.setup={};
-  ['team','tl','pm','po','epm','pd','init','kickoff'].forEach(f=>{
-    const el=document.getElementById('f-'+f);
-    if(el) d.setup[f]=el.value;
-  });
+  const teamEl = document.getElementById('f-team');
+  if (teamEl) d.setup.team = teamEl.value.trim();
   clearCache(); 
   setData(d);
   document.getElementById('header-team').textContent = d.setup.team||'No team set';
@@ -1094,57 +1042,6 @@ function genCoaching() {
 }
 
 /* ══ HISTORY ══ */
-function renderHistory() {
-  const h=getData().history||[], el=document.getElementById('history-list');
-  if (!h.length) { el.innerHTML='<div style="font-size:13px;color:var(--text3)">No check-ins saved yet.</div>'; return; }
-  
-  const METRIC_LABELS = { sct:'Story Cycle Time', ect:'Epic Full Cycle Time', fh:'Flow Handoff', wip:'WIP Active Epics' };
-  const METRIC_UNITS  = { sct:'days', ect:'days', fh:'days', wip:'epics' };
-
-  el.innerHTML = h.map(entry => {
-    const dt = formatDateLong(entry.date);
-
-    
-    const scoreRows = ACTIONS.map(a => {
-      const sv  = parseInt(entry.scores?.[a.id]||0);
-      const note = entry.notes?.[a.id]?.trim();
-      if (!sv && !note) return '';
-      return `<div style="display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-bottom:0.5px solid var(--border)">
-        <span class="owner-pill" style="background:${SCORE_BGS[sv]};color:${SCORE_COLS[sv]};flex-shrink:0;margin-top:1px">${a.code} ${sv||'—'}</span>
-        <div>
-          <div style="font-size:11px;font-weight:500;color:var(--text2)">${a.label}</div>
-          ${note ? `<div style="font-size:11px;color:var(--text2);margin-top:2px;line-height:1.5">${note}</div>` : ''}
-        </div>
-      </div>`;
-    }).filter(Boolean).join('');
-
-    
-    const metricRows = entry.metrics ? Object.entries(entry.metrics).map(([id, m]) => {
-      if (!m?.value && m?.value !== 0) return '';
-      const label = METRIC_LABELS[id] || id;
-      const unit  = METRIC_UNITS[id]  || '';
-      const comment = m.comment?.trim();
-      const action  = m.action?.trim();
-      return `<div style="display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-bottom:0.5px solid var(--border)">
-        <span style="font-size:10px;font-weight:500;background:var(--bg2);border:0.5px solid var(--border);border-radius:3px;padding:2px 7px;white-space:nowrap;flex-shrink:0;margin-top:1px;color:var(--text2)">${m.value} ${unit}</span>
-        <div>
-          <div style="font-size:11px;font-weight:500;color:var(--text2)">${label}</div>
-          ${comment ? `<div style="font-size:11px;color:var(--text2);margin-top:2px;line-height:1.5">${comment}</div>` : ''}
-          ${action  ? `<div style="font-size:11px;color:var(--text3);margin-top:2px;line-height:1.5">↳ ${action}</div>` : ''}
-        </div>
-      </div>`;
-    }).filter(Boolean).join('') : '';
-
-    return `<div class="history-item">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-        <div style="font-size:12px;font-weight:500">${dt}</div>
-        <div style="font-size:11px;color:var(--text3)">Progress: ${entry.progress}%</div>
-      </div>
-      ${scoreRows ? `<div style="margin-bottom:${metricRows?'10px':'0'}">${scoreRows}</div>` : ''}
-      ${metricRows ? `<div style="margin-top:6px"><div style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:4px">Flow Metrics</div>${metricRows}</div>` : ''}
-    </div>`;
-  }).join('');
-}
 
 /* ══ ADMIN DASHBOARD ══ */
 async function loadDashboard() {
@@ -1329,180 +1226,6 @@ const METRICS = [
   { id:'ect', higherIsBad:true  },
   { id:'wip', higherIsBad:true  },
 ];
-
-function renderMetrics() {
-  const d = getData();
-  const m = d.metrics || {};
-
-  
-  ['sct','ect','wip','fh'].forEach(id => {
-    const cur = m[id] || {};
-    const valEl = document.getElementById('m-'+id+'-value');
-    const comEl = document.getElementById('m-'+id+'-comment');
-    const actEl = document.getElementById('m-'+id+'-action');
-    if (valEl && cur.value !== undefined) valEl.value = cur.value;
-    if (comEl && cur.comment) comEl.value = cur.comment;
-    if (actEl && cur.action)  actEl.value = cur.action;
-    if (id === 'wip') {
-      const limEl = document.getElementById('m-wip-limit');
-      if (limEl && cur.limit !== undefined) limEl.value = cur.limit;
-    }
-  });
-
-  
-  const history = (d.history || []).filter(h => h.metrics);
-  ['sct','ect','wip','fh'].forEach(id => {
-    renderMetricTrend(id, history);
-    renderMetricHistory(id, history);
-  });
-  
-  const metricsDateEl = document.getElementById('metrics-date');
-  if (metricsDateEl) {
-    
-    metricsDateEl.value = new Date().toISOString().slice(0,10);
-    if (d.metrics) d.metrics.metricsDate = metricsDateEl.value;
-  }
-
-  
-  ['ect','fh'].forEach(id => {
-    const goalEl = document.getElementById('m-'+id+'-goal');
-    if (goalEl && m[id]?.goal) goalEl.value = m[id].goal;
-  });
-}
-
-function renderMetricTrend(id, history) {
-  const el = document.getElementById('m-'+id+'-trend');
-  if (!el) return;
-  
-  const seenDays = new Set();
-  const sorted = [...history]
-    .filter(h => {
-      if (!h.metrics?.[id]?.value) return false;
-      const day = h.date?.slice(0,10);
-      if (seenDays.has(day)) return false;
-      seenDays.add(day);
-      return true;
-    })
-    .sort((a,b) => new Date(b.date) - new Date(a.date));
-  const vals = sorted.map(h => parseFloat(h.metrics?.[id]?.value)).filter(v => !isNaN(v));
-  if (vals.length < 2) { el.innerHTML = '<span class="trend-indicator trend-new">No trend yet</span>'; return; }
-  
-  const last = vals[0], prev = vals[1];
-  const diff = last - prev;
-  const pct  = prev ? Math.abs(Math.round(diff/prev*100)) : 0;
-  let cls, arrow, label;
-  if (Math.abs(diff) < 0.5) { cls='trend-stable'; arrow='→'; label='Stable'; }
-  else if (diff > 0) { cls='trend-up-bad';    arrow='↑'; label=`+${pct}% vs last`; }
-  else               { cls='trend-down-good'; arrow='↓'; label=`-${pct}% vs last`; }
-  if (id === 'wip') {
-    const d = getData(); const limit = parseFloat(d.metrics?.wip?.limit||0);
-    if (limit && last > limit) { cls='trend-up-bad'; arrow='⚠'; label=`${last} / limit ${limit}`; }
-    else if (limit)             { cls='trend-down-good'; arrow='✓'; label=`${last} / limit ${limit}`; }
-  }
-  el.innerHTML = `<span class="trend-indicator ${cls}">${arrow} ${label}</span>`;
-}
-
-function renderMetricHistory(id, history) {
-  const el = document.getElementById('m-'+id+'-history');
-  if (!el) return;
-  
-  const seen = new Set();
-  const entries = [...history]
-    .filter(h => {
-      if (!h.metrics?.[id]?.value) return false;
-      const day = h.date?.slice(0,10);
-      if (seen.has(day)) return false;
-      seen.add(day);
-      return true;
-    })
-    .sort((a,b) => new Date(a.date) - new Date(b.date))
-    .slice(-6);
-  if (!entries.length) { el.innerHTML=''; return; }
-  const vals = entries.map(h => parseFloat(h.metrics[id].value));
-  const max  = Math.max(...vals, 1);
-  const bars = entries.map((h,i) => {
-    const v   = vals[i];
-    const ht  = Math.max(4, Math.round(v/max*36));
-    const dt  = formatDate(h.date);
-    return `<div style="display:flex;flex-direction:column;align-items:center;gap:3px;min-width:36px">
-      <div style="font-size:11px;font-weight:500;color:var(--text2)">${v}</div>
-      <div class="metric-bar" style="height:${ht}px;width:28px;border-radius:3px 3px 0 0" title="${dt}: ${v}"></div>
-      <div style="font-size:10px;color:var(--text3);white-space:nowrap;text-align:center">${dt}</div>
-    </div>`;
-  }).join('');
-  el.innerHTML = `
-    <div class="metric-history-title">Last ${entries.length} check-ins</div>
-    <div class="metric-chart" style="height:88px;align-items:flex-end">${bars}</div>`;
-}
-
-function saveMetric(id, field, value) {
-  const d = getData();
-  if (!d.metrics)     d.metrics = {};
-  if (!d.metrics[id]) d.metrics[id] = {};
-  d.metrics[id][field] = value;
-  setData(d);
-  const history = (d.history||[]).filter(h=>h.metrics);
-  renderMetricTrend(id, history);
-}
-
-function saveMetricsDate(val) {
-  const d = getData();
-  if (!d.metrics) d.metrics = {};
-  d.metrics.metricsDate = val;
-  setData(d);
-}
-
-function saveMetricGoal(id, value) {
-  const d = getData();
-  if (!d.metrics)     d.metrics = {};
-  if (!d.metrics[id]) d.metrics[id] = {};
-  d.metrics[id].goal = value;
-  setData(d);
-  
-  const el = document.getElementById('m-'+id+'-goal-saved');
-  if (el) { el.style.display='inline'; setTimeout(()=>el.style.display='none', 1500); }
-}
-
-function saveMetrics() {
-  const d = getData();
-  
-  if (!d.history) d.history = [];
-  const metricsDate = d.metrics?.metricsDate || new Date().toISOString().slice(0,10);
-  let entry = d.history.find(h => h.date && h.date.slice(0,10) === metricsDate);
-  if (!entry) {
-    const total = ACTIONS.reduce((s,a)=>s+a.milestones.reduce((ss,m)=>ss+m.commits.length,0),0);
-    const done  = ACTIONS.reduce((s,a)=>s+a.milestones.reduce((ss,m,mi)=>ss+m.commits.filter((_,ci)=>(d.checks?.commits||{})[ck(a.id,mi,ci)]).length,0),0);
-    entry = { date: new Date(metricsDate+'T12:00:00.000Z').toISOString(), scores: {...(d.checks?.scores||{})},
-      notes: {...(d.checks?.scoreNotes||{})}, progress: total?Math.round(done/total*100):0,
-      metrics: {} };
-    d.history.unshift(entry);
-  }
-  entry.metrics = { ...(d.metrics||{}) };
-
-  
-  const seen = new Set();
-  d.history = d.history.filter(h => {
-    const dayKey = h.date?.slice(0,10);
-    if (seen.has(dayKey)) return false;
-    seen.add(dayKey);
-    return true;
-  });
-
-  
-  d.history.sort((a,b) => new Date(b.date) - new Date(a.date));
-
-  setData(d);
-  
-  
-  const todayStr = new Date().toISOString().slice(0,10);
-  if (d.metrics) d.metrics.metricsDate = todayStr;
-  setData(d);
-  const metricsDateEl = document.getElementById('metrics-date');
-  if (metricsDateEl) metricsDateEl.value = todayStr;
-  renderMetrics();
-  flash('metrics-msg');
-  promptEmailExport(getData());
-}
 
 /* ══ EXPORT / IMPORT ══ */
 function exportData() {
