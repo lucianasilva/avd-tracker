@@ -281,10 +281,7 @@
         <span style="font-size:12px;color:var(--text3)">Date of this bi-weekly check-in</span>
       </div>
     </div>
-    <div class="section-gap">
-      <div class="checkin-title">Milestone alerts</div>
-      <div id="ci-alerts"></div>
-    </div>
+
     <div class="section-gap">
       <div class="checkin-title">Adoption scores — how useful is each action right now?</div>
       <div style="margin-bottom:12px;padding:10px 12px;background:var(--bg2);border-radius:var(--radius);font-size:12px;line-height:1.7;color:var(--text2)">
@@ -938,11 +935,7 @@ function renderCheckin() {
 
   document.getElementById('ci-stats').innerHTML=`
     <div class="stat-card"><div class="stat-label">Overall progress</div><div class="stat-val">${total?Math.round(done/total*100):0}%</div></div>
-    <div class="stat-card"><div class="stat-label">Avg adoption score</div><div class="stat-val" data-stat="avg-score">${avg}</div></div>
-    <div class="stat-card"><div class="stat-label">Overdue milestones</div><div class="stat-val" style="color:${overdue.length?'#A32D2D':'#639922'}">${overdue.length}</div></div>`;
-  document.getElementById('ci-alerts').innerHTML=overdue.length
-    ?overdue.map(o=>`<div class="alert-row"><span class="badge badge-overdue">Overdue</span>${o}</div>`).join('')
-    :'<div style="font-size:12px;color:var(--success-text);padding:6px 0">No overdue milestones.</div>';
+    <div class="stat-card"><div class="stat-label">Avg adoption score</div><div class="stat-val" data-stat="avg-score">${avg}</div></div>`;
   
   document.getElementById('ci-scores').innerHTML=ACTIONS.map(a=>{
     const sv=scores[a.id]||'0',nv=notes[a.id]||'';
