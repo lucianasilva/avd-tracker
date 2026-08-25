@@ -301,7 +301,11 @@
     <div class="save-bar">
       <button class="btn-primary" onclick="saveCheckin()">Save check-in</button>
       <button class="btn-ghost" onclick="genCoaching()">Get coaching prompts</button>
+      <button class="btn-ghost" onclick="exportData()" style="margin-left:auto">Export JSON ↓</button>
       <span id="checkin-msg" class="save-msg" >Saved.</span>
+    </div>
+    <div class="info-note" style="margin-top:10px">
+      ✅ After saving, click <strong>Export JSON ↓</strong> and send the file to <strong>Luciana Silva on Slack</strong>.
     </div>
     <div id="coaching-box" class="coaching-box" style="display:none">
       <div style="font-size:12px;font-weight:500;color:var(--text2);margin-bottom:8px">Coaching focus for this check-in</div>
