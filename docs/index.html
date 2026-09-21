@@ -493,7 +493,6 @@ const ALLOWED_USERS     = [
   'mariamuriel',
   'matteobernazzani-liferay',
   'noemedina-lr',
-  'tawneel',
 ];
 
 /* ══ ACTIONS DATA ══ */
@@ -661,6 +660,16 @@ function storageKey() {
 let _cache = null;
 function getData() {
   if (_cache) return _cache;
+  // On first load, scan for a key with a saved team name
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key.startsWith('avd-data-') && key !== 'avd-data-default') {
+      try {
+        const d = JSON.parse(localStorage.getItem(key) || '{}');
+        if (d.setup?.team) { _cache = d; return _cache; }
+      } catch(e) {}
+    }
+  }
   try { _cache = JSON.parse(localStorage.getItem(storageKey()) || '{}'); }
   catch(e) { _cache = {}; }
   return _cache;
