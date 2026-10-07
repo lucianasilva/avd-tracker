@@ -246,8 +246,10 @@
       </div>
       <div class="save-bar">
         <button class="btn-primary" onclick="saveSetup()">Save team setup</button>
+        <button class="btn-ghost" onclick="startFresh()" style="color:var(--danger-text);border-color:var(--danger-border)">Start fresh ↺</button>
         <span id="setup-msg" class="save-msg" >Saved.</span>
       </div>
+      <div style="font-size:11px;color:var(--text3);margin-top:8px">Use <strong>Start fresh</strong> when setting up a new team on this device.</div>
     </div>
     <div class="info-note">
       <strong>Switching computers?</strong> Use the button below to restore your previously exported data on this device.
@@ -660,18 +662,18 @@ function storageKey() {
 let _cache = null;
 function getData() {
   if (_cache) return _cache;
-  // On first load, scan for a key with a saved team name
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (key && key.startsWith('avd-data-') && key !== 'avd-data-default') {
-      try {
-        const d = JSON.parse(localStorage.getItem(key) || '{}');
-        if (d.setup?.team) { _cache = d; return _cache; }
-      } catch(e) {}
-    }
+  // On first load, only restore data if we can match it to a saved team name
+  // Check session storage for last active team to avoid loading wrong team
+  const lastTeam = sessionStorage.getItem('avd-active-team');
+  if (lastTeam) {
+    const key = 'avd-data-' + lastTeam.replace(/\s+/g,'-').toLowerCase();
+    try {
+      const d = JSON.parse(localStorage.getItem(key) || '{}');
+      if (d.setup?.team) { _cache = d; return _cache; }
+    } catch(e) {}
   }
-  try { _cache = JSON.parse(localStorage.getItem(storageKey()) || '{}'); }
-  catch(e) { _cache = {}; }
+  // No active session — start fresh, don't bleed another team's data
+  _cache = {};
   return _cache;
 }
 function setData(d) {
@@ -679,6 +681,21 @@ function setData(d) {
   localStorage.setItem(storageKey(), JSON.stringify(d));
 }
 function clearCache() { _cache = null; }
+
+function startFresh() {
+  if (!confirm('This will clear all data for the current team on this device. Are you sure?')) return;
+  const key = storageKey();
+  localStorage.removeItem(key);
+  sessionStorage.removeItem('avd-active-team');
+  clearCache();
+  // Reset UI
+  const teamEl = document.getElementById('f-team');
+  if (teamEl) teamEl.value = '';
+  document.getElementById('header-team').textContent = 'No team set';
+  renderRoadmap();
+  renderCheckin();
+  flash('setup-msg');
+}
 function formatDate(dateVal, opts) {
   
   const str = (dateVal instanceof Date) ? dateVal.toISOString() : (dateVal || '');
@@ -732,7 +749,10 @@ function showView(v, btn) {
 function applySetup() {
   const s = getData().setup||{};
   const teamEl = document.getElementById('f-team');
-  if (teamEl && s.team) teamEl.value = s.team;
+  if (teamEl && s.team) {
+    teamEl.value = s.team;
+    sessionStorage.setItem('avd-active-team', s.team);
+  }
   document.getElementById('header-team').textContent = s.team||'No team set';
 }
 
@@ -740,7 +760,10 @@ function saveSetup() {
   const d=getData();
   if(!d.setup) d.setup={};
   const teamEl = document.getElementById('f-team');
-  if (teamEl) d.setup.team = teamEl.value.trim();
+  if (teamEl) {
+    d.setup.team = teamEl.value.trim();
+    sessionStorage.setItem('avd-active-team', d.setup.team);
+  }
   clearCache(); 
   setData(d);
   document.getElementById('header-team').textContent = d.setup.team||'No team set';
@@ -1031,6 +1054,9 @@ async function saveCheckin() {
   if (d.checks) d.checks.ciDate = new Date().toISOString().slice(0,10);
   setData(d);
   flash('checkin-msg');
+  // Warn if data hasn't been saved before export
+  const msgEl = document.getElementById('checkin-msg');
+  if (msgEl) msgEl.textContent = 'Saved! ✓ Now click Export JSON ↓';
   renderHistory();
 }
 
