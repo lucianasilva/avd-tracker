@@ -353,119 +353,6 @@
     </div>
   </div>
 
-  <!-- ADMIN DASHBOARD -->
-  <div class="view" id="view-admin">
-    <div class="sync-bar">
-      <button class="btn-primary" onclick="loadDashboard()">Refresh dashboard</button>
-      <select id="team-filter" class="score-sel" style="min-width:180px;font-size:13px" onchange="filterDashboard(this.value)">
-        <option value="all">All teams</option>
-      </select>
-      <label class="btn-ghost" style="display:inline-flex;align-items:center;gap:6px;cursor:pointer">
-        Import JSONs ↑
-        <input type="file" accept=".json" multiple style="display:none" onchange="importMultiple(event)"/>
-      </label>
-      <span id="sync-spinner" style="display:none"><span class="loading-spinner"></span></span>
-      <span class="sync-time" id="sync-time"></span>
-    </div>
-
-    <div style="font-size:13px;font-weight:500;margin-bottom:12px">Latest check-in</div>
-    <div id="dash-grid" class="dash-grid">
-      <div class="dash-empty">Click "Refresh dashboard" to load data from all teams.</div>
-    </div>
-
-    <div style="font-size:13px;font-weight:500;margin-bottom:12px;margin-top:20px">Adoption score history</div>
-    <div class="card" id="dash-trend">
-      <div class="no-data">No history data yet.</div>
-    </div>
-
-    <div style="font-size:13px;font-weight:500;margin-bottom:12px;margin-top:20px">Flow metrics evolution</div>
-    <div class="card" id="dash-metrics">
-      <div class="no-data">No metrics data yet.</div>
-    </div>
-
-    <div id="dash-comments-section" style="display:none">
-      <div style="font-size:13px;font-weight:500;margin-bottom:12px;margin-top:20px">Latest check-in comments</div>
-      <div class="card" id="dash-comments">
-        <div class="no-data">No comments yet.</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ADMIN DASHBOARD -->
-  <div class="view" id="view-admin">
-    <div class="sync-bar">
-      <button class="btn-primary" onclick="loadDashboard()">Refresh dashboard</button>
-      <select id="team-filter" class="score-sel" style="min-width:180px;font-size:13px" onchange="filterDashboard(this.value)">
-        <option value="all">All teams</option>
-      </select>
-      <label class="btn-ghost" style="display:inline-flex;align-items:center;gap:6px;cursor:pointer">
-        Import JSONs ↑
-        <input type="file" accept=".json" multiple style="display:none" onchange="importMultiple(event)"/>
-      </label>
-      <span id="sync-spinner" style="display:none"><span class="loading-spinner"></span></span>
-      <span class="sync-time" id="sync-time"></span>
-    </div>
-
-    <div style="font-size:13px;font-weight:500;margin-bottom:12px">Latest check-in</div>
-    <div id="dash-grid" class="dash-grid">
-      <div class="dash-empty">Click "Refresh dashboard" to load data from all teams.</div>
-    </div>
-
-    <div style="font-size:13px;font-weight:500;margin-bottom:12px;margin-top:20px">Adoption score history</div>
-    <div class="card" id="dash-trend">
-      <div class="no-data">No history data yet.</div>
-    </div>
-
-    <div style="font-size:13px;font-weight:500;margin-bottom:12px;margin-top:20px">Flow metrics evolution</div>
-    <div class="card" id="dash-metrics">
-      <div class="no-data">No metrics data yet.</div>
-    </div>
-
-    <div id="dash-comments-section" style="display:none">
-      <div style="font-size:13px;font-weight:500;margin-bottom:12px;margin-top:20px">Latest check-in comments</div>
-      <div class="card" id="dash-comments">
-        <div class="no-data">No comments yet.</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ADMIN DASHBOARD -->
-  <div class="view" id="view-admin">
-    <div class="sync-bar">
-      <button class="btn-primary" onclick="loadDashboard()">Refresh dashboard</button>
-      <select id="team-filter" class="score-sel" style="min-width:180px;font-size:13px" onchange="filterDashboard(this.value)">
-        <option value="all">All teams</option>
-      </select>
-      <label class="btn-ghost" style="display:inline-flex;align-items:center;gap:6px;cursor:pointer">
-        Import JSONs ↑
-        <input type="file" accept=".json" multiple style="display:none" onchange="importMultiple(event)"/>
-      </label>
-      <span id="sync-spinner" style="display:none"><span class="loading-spinner"></span></span>
-      <span class="sync-time" id="sync-time"></span>
-    </div>
-
-    <div style="font-size:13px;font-weight:500;margin-bottom:12px">Latest check-in</div>
-    <div id="dash-grid" class="dash-grid">
-      <div class="dash-empty">Click "Refresh dashboard" to load data from all teams.</div>
-    </div>
-
-    <div style="font-size:13px;font-weight:500;margin-bottom:12px;margin-top:20px">Adoption score history</div>
-    <div class="card" id="dash-trend">
-      <div class="no-data">No history data yet.</div>
-    </div>
-
-    <div style="font-size:13px;font-weight:500;margin-bottom:12px;margin-top:20px">Flow metrics evolution</div>
-    <div class="card" id="dash-metrics">
-      <div class="no-data">No metrics data yet.</div>
-    </div>
-
-    <div id="dash-comments-section" style="display:none">
-      <div style="font-size:13px;font-weight:500;margin-bottom:12px;margin-top:20px">Latest check-in comments</div>
-      <div class="card" id="dash-comments">
-        <div class="no-data">No comments yet.</div>
-      </div>
-    </div>
-  </div>
 
 </div>
 </div>
@@ -491,7 +378,7 @@ const ALLOWED_USERS     = [
   'rafaela-nasciment0',
   'anuragmittal1989',
   'brunofalc',
-  'tawneel',
+  'jpince',
   'mariamuriel',
   'matteobernazzani-liferay',
   'noemedina-lr',
