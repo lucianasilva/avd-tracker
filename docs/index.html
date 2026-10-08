@@ -853,8 +853,10 @@ function renderCheckin() {
   
   const ciDateEl = document.getElementById('ci-date');
   if (ciDateEl) {
-    const savedDate = d.checks?.ciDate;
-    ciDateEl.value = savedDate || new Date().toISOString().slice(0,10);
+    // Always default to today — EPM can change if needed
+    ciDateEl.value = new Date().toISOString().slice(0,10);
+    // Sync to checks.ciDate so save uses today
+    if (d.checks) d.checks.ciDate = ciDateEl.value;
   }
 
   document.getElementById('ci-stats').innerHTML=`
@@ -927,8 +929,13 @@ async function saveCheckin() {
   if(!d.history) d.history=[];
   const total=ACTIONS.reduce((s,a)=>s+a.milestones.reduce((ss,m)=>ss+m.commits.length,0),0);
   const done=ACTIONS.reduce((s,a)=>s+a.milestones.reduce((ss,m,mi)=>ss+m.commits.filter((_,ci)=>commits[ck(a.id,mi,ci)]).length,0),0);
-  const ciDate = d.checks?.ciDate || new Date().toISOString().slice(0,10);
-  const entry={date:new Date(ciDate+'T12:00:00.000Z').toISOString(),scores:{...(d.checks?.scores||{})},notes:{...(d.checks?.scoreNotes||{})},progress:total?Math.round(done/total*100):0,metrics:{...(d.metrics||{})},checkinDate:ciDate};
+  // Use ciDate from UI field for the entry date
+  const ciDateEl = document.getElementById('ci-date');
+  const ciDate = ciDateEl?.value || d.checks?.ciDate || new Date().toISOString().slice(0,10);
+  // Snapshot scores and notes at save time — do not reference d.checks after this point
+  const savedScores = JSON.parse(JSON.stringify(d.checks?.scores || {}));
+  const savedNotes  = JSON.parse(JSON.stringify(d.checks?.scoreNotes || {}));
+  const entry={date:new Date(ciDate+'T12:00:00.000Z').toISOString(),scores:savedScores,notes:savedNotes,progress:total?Math.round(done/total*100):0,metrics:JSON.parse(JSON.stringify(d.metrics||{})),checkinDate:ciDate};
   
   const entryDay = entry.date.slice(0,10);
   d.history = d.history.filter(h => h.date?.slice(0,10) !== entryDay);
@@ -938,7 +945,10 @@ async function saveCheckin() {
   d.history.sort((a,b) => new Date(b.date) - new Date(a.date));
 
   
-  if (d.checks) d.checks.ciDate = new Date().toISOString().slice(0,10);
+  // Reset ciDate to today so next save gets the correct date
+  const todayIso = new Date().toISOString().slice(0,10);
+  if (d.checks) d.checks.ciDate = todayIso;
+  if (ciDateEl) ciDateEl.value = todayIso;
   setData(d);
   flash('checkin-msg');
   // Warn if data hasn't been saved before export
