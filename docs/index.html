@@ -414,26 +414,19 @@ const ACTIONS = [
       {text:'First WIP violation documented with reason',owner:'EPM',done:'WIP Follow Up: date, excess Epic, reason, and outcome'}
     ]}
   ]},
-  {id:'a4',code:'A4',label:'Eliminate Story Estimations',tagline:'From "how long?" to "small enough?"',color:'#185FA5',textColor:'#E6F1FB',
+  {id:'a4a5',code:'A4+A5',label:'Flow-based Forecasting',tagline:'Stop estimating, measure instead — Cycle Time is your predictor',color:'#185FA5',textColor:'#E6F1FB',
    milestones:[
     {week:'Week 1',commits:[
       {text:'EPM announces story estimations are suspended from this date',owner:'EPM',done:'Message sent in team channel. No new story receives story points'},
-      {text:'TL takes over refinement with slicing focus: "Can this be done in ≤5 days?"',owner:'TL',done:'TL facilitates at least 1 refinement without story points'}
-    ]},
-    {week:'Week 2',commits:[
-      {text:'EPM uses historical throughput and average cycle time for forecasting instead of manual estimates',owner:'EPM',done:'EPM can answer "when will it be done?" using flow data only'}
-    ]}
-  ]},
-  {id:'a5',code:'A5',label:'Story Cycle Time',tagline:'Target: 85th pct ≤ 15 days by end of 2026',color:'#854F0B',textColor:'#FAEEDA',
-   milestones:[
-    {week:'Week 1',commits:[
+      {text:'TL takes over refinement with slicing focus: "Can this be done in ≤5 days?"',owner:'TL',done:'TL facilitates at least 1 refinement without story points'},
       {text:'EPM records current 85th percentile Cycle Time as official baseline',owner:'EPM',done:'Baseline value entered in the Flow Metrics tab (Story Cycle Time field)'}
     ]},
     {week:'Week 2',commits:[
-      {text:'EPM starts planning the actions identified',owner:'EPM',done:'Action Plan created with at least 1 quick win identified and assigned'}
+      {text:'EPM uses historical throughput and Cycle Time for forecasting instead of manual estimates',owner:'EPM',done:'EPM can answer "when will it be done?" using flow data only'},
+      {text:'EPM starts planning the actions identified from Cycle Time data',owner:'EPM',done:'Action Plan created with at least 1 quick win identified and assigned'}
     ]},
     {week:'Month 1',commits:[
-      {text:'EPM teaches TL to read metrics in Tableau',owner:'EPM',done:'TL can identify at-risk stories on the dashboard independently'},
+      {text:'EPM teaches TL to read Cycle Time metrics in Tableau',owner:'EPM',done:'TL can identify at-risk stories on the dashboard independently'},
       {text:'First round of quick wins from Action Plan implemented',owner:'All',done:'At least 1 Action Plan item executed with evidence of result'},
       {text:'Bi-weekly Cycle Time review cadence established',owner:'EPM',done:'Recurring invite in calendar. First review completed with data'}
     ]}
